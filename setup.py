@@ -11,7 +11,7 @@ setup(
     name="",
     version="0.0.1",
     description="Utils to handle FHIR Terminology Resources more efficiently",
-    long_description=open("README.txt").read() + "\n\n" + open("CHANGELOG.txt").read(),
+    long_description=open("README.md").read() + "\n\n" + open("CHANGELOG.md").read(),
     url="",
     author="",
     author_email="",
