@@ -74,6 +74,7 @@ class ValueSet(Resource):
 
         if self.expansion:
             self.expansion.contains.append(coding)
+            
 class SimpleValueSet(ValueSet):
     def __init__(self, *args: VSCodingWithDesignation, **kwargs):
         assert "expansion" not in kwargs
