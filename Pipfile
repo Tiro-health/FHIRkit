@@ -6,11 +6,14 @@ name = "pypi"
 [packages]
 pydantic = "*"
 requests = "*"
+unknown = {editable = true, path = "."}
+pandas = "*"
 
 [dev-packages]
 pytest = "*"
 black = "*"
 mypy = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.9"

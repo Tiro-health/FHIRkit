@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: tiro-fhir
+Version: 0.0.1
+Summary: Utils to handle FHIR Terminology Resources more efficiently
+Home-page: 
+Author: 
+Author-email: 
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Healthcare Industry
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+
+
+
+
+

@@ -1,8 +1,9 @@
 from __future__ import annotations
 import itertools
-from typing import Union, List, Optional
+import logging
+from time import time
+from typing import List, Optional
 from pydantic import BaseModel, Field
-
 
 class AbstractCoding(BaseModel):
     """FHIR Terminology based model for concepts"""
@@ -14,15 +15,13 @@ class AbstractCoding(BaseModel):
     class Config:
         allow_mutation = False
 
-
 class Coding(AbstractCoding):
+
     def __str__(self) -> str:
-        return f'"{self.display}" {self.system}|{self.code}'
+        return f"{self.system}|{self.code} \"{self.display}\""
 
     def __eq__(self, other: AbstractCoding) -> bool:
-        if isinstance(other, AbstractCoding):
-            return self.system == other.system and self.code == other.code
-        return False
+        return self.system == other.system and self.code == other.code
 
     def __hash__(self):
         return hash((self.system, self.code))
@@ -34,19 +33,18 @@ class CodeableConcept(BaseModel):
     text: str
     coding: List[Coding] = Field(default=[])
 
-    def __eq__(self, other: Union[CodeableConcept, Coding]) -> bool:
+    def __eq__(self, other: CodeableConcept) -> bool:
+        """
+            Observation.code == CodeableConcept()
+        
+        """
 
         # TODO handle case if other is a coding
         # Observation.code == Coding()
-        if isinstance(other, Coding):
-            result = any(other == c for c in self.coding)
-            return result
-        elif isinstance(other, CodeableConcept):
-            return any(
-                c1 == c2 for c1, c2 in itertools.product(self.coding, other.coding)
-            )
-        else:
-            return False
+
+        return any(c1 == c2 for c1, c2 in itertools.product(self.coding, other.coding)) 
+
+        
 
 
 class CodeSystem(BaseModel):
