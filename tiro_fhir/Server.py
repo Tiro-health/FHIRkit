@@ -11,4 +11,6 @@ class AbstractFHIRServer:
     def expand_value_set(self, *args, **kwargs):
         raise NotImplementedError()
 
+    def validate_code_in_valueset(self, *args, **kwargs)->bool:
+        raise NotImplementedError()
         

@@ -1,3 +1,6 @@
 /.env
 /.pytest_cache
 /Pipfile.lock
+__pycache__
+tiro_fhir/__pycache__
+build
