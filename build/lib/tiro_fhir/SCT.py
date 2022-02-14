@@ -14,62 +14,9 @@ from tiro_fhir.ValueSet import (
 )
 from tiro_fhir.CodeSystem import Coding
 
-class SCTDescendantsFilter(VSFilter):
-    property: Literal["concept"]
-    op: Literal["is-a"]
-    value: str
-class SCTImplicitInclude(VSInclude):
-    concept:List = []
-    valueSetList = []
-    filter: Tuple[SCTDescendantsFilter]
-
-class SCTImplicitCompose(VSCompose):
-    include: Tuple[SCTImplicitInclude]
-
-class SCTImplicitValueSet(ValueSet):
-    url: HttpUrl
-    compose: SCTImplicitCompose
-
-    def expand(self):
-        if self.fhir_server:
-            expansion = VSExpansion(contains=[])
-            for code in self.fhir_server.expand_value_set(self):
-                expansion.contains.append(code)
-            self.expansion = expansion
-        else:
-            raise RuntimeWarning(
-                "Can't expand an implicit SNOMED-CT without a FHIR server."
-            )
-
-class SCTDescendantsFilter(VSFilter):
-    property: Literal["concept"]
-    op: Literal["is-a"]
-    value: str
 
 
-class SCTCoding(Coding):
-    system: HttpUrl = Field(default="http://snomed.info/sct")
 
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], str):
-            code, display, *_ = (x.strip() for x in args[0].split("|"))
-            super().__init__(code=code, display=display)
-        else:
-            super().__init__(*args, **kwargs)
-
-    def descendants(self, fhir_server:Optional[AbstractFHIRServer] = None) -> ValueSet:
-        return SCTImplicitValueSet(
-            url=f"{self.system}?fhir_vs=isa/{self.code}",
-            compose=SCTImplicitCompose(
-                include=[
-                    SCTImplicitInclude(
-                        system=self.system,
-                        filter=[SCTDescendantsFilter(property="concept", op="is-a", value=self.code)],
-                    )
-                ]
-            ),
-            fhir_server=fhir_server
-        )
 
 
 class SCTFHIRTerminologyServer(AbstractFHIRServer):

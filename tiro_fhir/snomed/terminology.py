@@ -1,76 +1,13 @@
 from __future__ import annotations
 import logging
 from time import time
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Tuple, Union
 import requests
-from pydantic import Field, HttpUrl, parse_obj_as
+from pydantic import HttpUrl, parse_obj_as
+from tiro_fhir.Parameter import Parameter 
 from tiro_fhir.Server import AbstractFHIRServer 
-from tiro_fhir.ValueSet import (
-    VSCompose,
-    VSExpansion,
-    VSFilter,
-    VSInclude,
-    ValueSet,
-)
-from tiro_fhir.CodeSystem import Coding
-
-class SCTDescendantsFilter(VSFilter):
-    property: Literal["concept"]
-    op: Literal["is-a"]
-    value: str
-class SCTImplicitInclude(VSInclude):
-    concept:List = []
-    valueSetList = []
-    filter: Tuple[SCTDescendantsFilter]
-
-class SCTImplicitCompose(VSCompose):
-    include: Tuple[SCTImplicitInclude]
-
-class SCTImplicitValueSet(ValueSet):
-    url: HttpUrl
-    compose: SCTImplicitCompose
-
-    def expand(self):
-        if self.fhir_server:
-            expansion = VSExpansion(contains=[])
-            for code in self.fhir_server.expand_value_set(self):
-                expansion.contains.append(code)
-            self.expansion = expansion
-        else:
-            raise RuntimeWarning(
-                "Can't expand an implicit SNOMED-CT without a FHIR server."
-            )
-
-class SCTDescendantsFilter(VSFilter):
-    property: Literal["concept"]
-    op: Literal["is-a"]
-    value: str
-
-
-class SCTCoding(Coding):
-    system: HttpUrl = Field(default="http://snomed.info/sct")
-
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], str):
-            code, display, *_ = (x.strip() for x in args[0].split("|")) # break string in pieces
-            super().__init__(code=code, display=display)
-        else:
-            super().__init__(*args, **kwargs) # business as usual, Pydantic takes over
-
-    def descendants(self, fhir_server:Optional[AbstractFHIRServer] = None) -> ValueSet:
-        return SCTImplicitValueSet(
-            url=f"{self.system}?fhir_vs=isa/{self.code}",
-            compose=SCTImplicitCompose(
-                include=[
-                    SCTImplicitInclude(
-                        system=self.system,
-                        filter=[SCTDescendantsFilter(property="concept", op="is-a", value=self.code)],
-                    )
-                ]
-            ),
-            fhir_server=fhir_server
-        )
-
+from tiro_fhir.snomed.ValueSet import SCTImplicitValueSet
+from tiro_fhir.elements import AbstractCoding, Coding
 
 class SCTFHIRTerminologyServer(AbstractFHIRServer):
     def __init__(self, baseUrl: Union[str, HttpUrl]) -> None:
@@ -96,6 +33,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
             payload = ""
             try:
 
+                # TODO parse this as FHIR Resource!
                 raw_response = requests.request(
                     "GET", req_url, data=payload, headers=headersList
                 )
@@ -157,3 +95,40 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
                         f"{remaining} concepts remaining (total: {response['expansion']['total']} | page size: {page_size})."
                     )
                 more_results_available = remaining > 0
+
+    def validate_code_in_valueset(self, implicit_vs:Union[SCTImplicitValueSet, HttpUrl], coding:AbstractCoding)->bool:
+        if isinstance(implicit_vs, SCTImplicitValueSet):
+            assert (
+                implicit_vs.url is not None
+            ), f"Can't expand an implicit ValueSet without URL. Received {implicit_vs}"
+            implicit_vs = implicit_vs.url
+
+        path = "ValueSet/$validate-code"
+ 
+        query = "url={url}&code={code}&system={system}".format(url=str(implicit_vs), code=coding.code, system=coding.system)
+
+        if coding.display:
+            query+f"&display={coding.display}"
+
+        req_url = f"{self.baseUrl}/{path}?{query}"
+        headersList = {
+                "Accept": "application/json",
+            }
+        payload = ""
+        try:
+
+            # TODO parse this as FHIR Resource!
+            raw_response = requests.request(
+                "GET", req_url, data=payload, headers=headersList
+            )
+            if raw_response.status_code != 200:
+                logging.warn(
+                    "Received an error from the snowstorm server (%s) after sending the following request %s",
+                    raw_response.text,
+                    req_url,
+                )
+            response = Parameter.parse_obj(raw_response.json())
+        except:
+            raise RuntimeWarning("Failed when calling {endpoint} on {baseurl}".format(endpoint=path, baseurl=self.baseUrl))
+        
+        return response.result

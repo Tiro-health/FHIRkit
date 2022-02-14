@@ -1,4 +1,7 @@
-from .CodeSystem import CodeableConcept, Coding, CodeSystem
+from .Resource import Resource
+from .elements import CodeableConcept, Coding, Quantity, Reference
+from .CodeSystem import CodeSystem
 from .ValueSet import ValueSet, SimpleValueSet
-from .SCT import SCTCoding, SCTFHIRTerminologyServer
-from .Quantity import Quantity
+from .snomed import SCTCoding, SCTConcept, SCTFHIRTerminologyServer
+from .Observation import Observation
+from .Procedure import Procedure

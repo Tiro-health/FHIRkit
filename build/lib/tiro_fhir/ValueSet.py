@@ -1,6 +1,6 @@
-from typing import Iterable, Iterator, List, Literal, Optional
-from pydantic import BaseModel, Field, HttpUrl
-from tiro_fhir.CodeSystem import Coding, AbstractCoding
+from typing import Iterable, Iterator, List, Literal, Optional, Union
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl, parse_obj_as
+from tiro_fhir.elements import CodeableConcept, Coding, AbstractCoding
 from tiro_fhir.Resource import Resource
 
 class VSDesignation(BaseModel):
@@ -36,8 +36,10 @@ class VSExpansion(BaseModel):
     contains: List[VSCodingWithDesignation]
 
 class ValueSet(Resource):
-    url: Optional[HttpUrl]
-    compose: VSCompose
+    resourceType = Field("ValueSet", const=True)
+    url: Optional[AnyUrl]
+    name: Optional[str]
+    compose: Optional[VSCompose]
     expansion: Optional[VSExpansion]
 
     def __iter__(self) -> Iterator[Coding]:
@@ -51,9 +53,13 @@ class ValueSet(Resource):
             self.expand()
         return self.expansion.total or len(self.expansion.contains)
 
-    def __contains__(self, item:AbstractCoding) -> bool:
-        return any(c == item for c in self)
-
+    def __contains__(self, item:Union[AbstractCoding, CodeableConcept]) -> bool:
+        if isinstance(item, CodeableConcept):
+            return any(c in self for c in item.coding)
+        elif isinstance(item, AbstractCoding):
+            return any(c == item for c in self)
+        else:
+            return False
     @property
     def has_expanded(self):
         return self.expansion is not None
@@ -68,3 +74,10 @@ class ValueSet(Resource):
 
         if self.expansion:
             self.expansion.contains.append(coding)
+            
+class SimpleValueSet(ValueSet):
+    def __init__(self, *args: VSCodingWithDesignation, **kwargs):
+        assert "expansion" not in kwargs
+        super().__init__(expansion=VSExpansion(contains=args, total=len(args)), **kwargs)
+
+

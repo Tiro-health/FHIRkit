@@ -1,6 +1,6 @@
 from re import U
-from tiro_fhir.CodeSystem import CodeableConcept, Coding
-from tiro_fhir.SCT import SCTCoding, SCTFHIRTerminologyServer
+from tiro_fhir import CodeableConcept, Coding
+from tiro_fhir.snomed import SCTCoding, SCTFHIRTerminologyServer
 from tiro_fhir.ValueSet import SimpleValueSet, ValueSet
 
 

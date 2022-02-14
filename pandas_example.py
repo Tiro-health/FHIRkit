@@ -1,6 +1,6 @@
 #%% 
 import pandas as pd
-from tiro_fhir.SCT import SCTCoding
+from tiro_fhir.snomed.terminology import SCTCoding
 from tiro_fhir.ValueSet import ValueSet
 
 # %%

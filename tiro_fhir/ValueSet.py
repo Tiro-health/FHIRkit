@@ -1,7 +1,6 @@
-from ctypes import Union
-from typing import Iterable, Iterator, List, Literal, Optional
-from pydantic import BaseModel, Field, HttpUrl, parse_obj_as
-from tiro_fhir.CodeSystem import CodeableConcept, Coding, AbstractCoding
+from typing import Iterable, Iterator, List, Literal, Optional, Union
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl, parse_obj_as
+from tiro_fhir.elements import CodeableConcept, Coding, AbstractCoding
 from tiro_fhir.Resource import Resource
 
 class VSDesignation(BaseModel):
@@ -37,7 +36,8 @@ class VSExpansion(BaseModel):
     contains: List[VSCodingWithDesignation]
 
 class ValueSet(Resource):
-    url: Optional[HttpUrl]
+    resourceType = Field("ValueSet", const=True)
+    url: Optional[AnyUrl]
     name: Optional[str]
     compose: Optional[VSCompose]
     expansion: Optional[VSExpansion]
