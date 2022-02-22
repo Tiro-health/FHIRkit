@@ -3,6 +3,8 @@ pyproject.toml
 setup.py
 tiro_fhir/CodeSystem.py
 tiro_fhir/Observation.py
+tiro_fhir/Parameter.py
+tiro_fhir/Procedure.py
 tiro_fhir/Resource.py
 tiro_fhir/Server.py
 tiro_fhir/ValueSet.py

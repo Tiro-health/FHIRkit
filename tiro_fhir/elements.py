@@ -1,8 +1,7 @@
 from __future__ import annotations
-from ctypes import Union
 from datetime import datetime
 import itertools
-from typing import Any, ForwardRef, Literal, Optional, Sequence
+from typing import Any, ForwardRef, Literal, Optional, Sequence, List, Union
 from pydantic import AnyUrl, BaseModel, Field
 from tiro_fhir.data_types import Code, XHTML
 
@@ -39,9 +38,6 @@ class Coding(AbstractCoding):
     def __str__(self) -> str:
         return f'"{self.display}" {self.system}|{self.code}'
 
-    def __repr__(self)-> str:
-        return str(self) 
-
     def __eq__(self, other: AbstractCoding) -> bool:
         if isinstance(other, AbstractCoding):
             return self.system == other.system and self.code == other.code
@@ -56,13 +52,11 @@ class CodeableConcept(BaseModel):
     """FHIR Terminology based mdoel for CodeableConcepts"""
 
     text: str
-    coding: Sequence[Coding] = Field(default=[])
-
+    coding: Optional[List[Coding]] = Field(default=[])
+    active: Optional[bool] 
+    
     def __str__(self) -> str:
         return self.text
-
-    def __repr__(self)-> str:
-        return str(self)
 
     def __eq__(self, other: Union[CodeableConcept, Coding]) -> bool:
 
