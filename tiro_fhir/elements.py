@@ -66,13 +66,11 @@ class CodeableConcept(BaseModel):
     """FHIR Terminology based mdoel for CodeableConcepts"""
 
     text: str
-    coding: Sequence[Coding] = Field(default=[])
+    coding: Optional[List[Coding]] = Field(default=[])
+    active: Optional[bool]
 
     def __str__(self) -> str:
         return self.text
-
-    def __repr__(self) -> str:
-        return str(self)
 
     def __eq__(self, other: Union[CodeableConcept, Coding]) -> bool:
 
