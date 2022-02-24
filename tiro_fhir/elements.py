@@ -1,29 +1,36 @@
 from __future__ import annotations
-from ctypes import Union
 from datetime import datetime
 import itertools
-from typing import Any, ForwardRef, Literal, Optional, Sequence
+from typing import Any, ForwardRef, Literal, Optional, Sequence, Union
+from pydantic.dataclasses import dataclass
 from pydantic import AnyUrl, BaseModel, Field
 from tiro_fhir.data_types import Code, XHTML
 
-class Element(BaseModel):
+
+@dataclass
+class Element:
     id: Optional[str]
     extension: Sequence[Extension] = Field([], repr=False)
 
-class Narrative(BaseModel):
+
+@dataclass
+class Narrative(Element):
     status: Literal["generated", "extensions", "additional", "required"]
     div: XHTML
 
+
+@dataclass
 class Extension(Element):
     url: AnyUrl
     value: Optional[Any]
 
-Element.update_forward_refs()
 
+@dataclass
 class BackboneElement(Element):
     modifierExtension: Sequence[Extension] = Field([], repr=False)
 
 
+@dataclass
 class AbstractCoding(Element):
     """FHIR Terminology based model for concepts"""
 
@@ -35,12 +42,13 @@ class AbstractCoding(Element):
         allow_mutation = False
 
 
+@dataclass
 class Coding(AbstractCoding):
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f'"{self.display}" {self.system}|{self.code}'
 
-    def __repr__(self)-> str:
-        return str(self) 
+    def __str__(self) -> str:
+        return self.display or f"{self.system}|{self.code}"
 
     def __eq__(self, other: AbstractCoding) -> bool:
         if isinstance(other, AbstractCoding):
@@ -52,6 +60,8 @@ class Coding(AbstractCoding):
 
 
 CodeableConcept = ForwardRef("CodeableConcept")
+
+
 class CodeableConcept(BaseModel):
     """FHIR Terminology based mdoel for CodeableConcepts"""
 
@@ -61,7 +71,7 @@ class CodeableConcept(BaseModel):
     def __str__(self) -> str:
         return self.text
 
-    def __repr__(self)-> str:
+    def __repr__(self) -> str:
         return str(self)
 
     def __eq__(self, other: Union[CodeableConcept, Coding]) -> bool:
@@ -76,17 +86,21 @@ class CodeableConcept(BaseModel):
         else:
             return False
 
+
 CodeableConcept.update_forward_refs()
+
 
 class Period(Element):
     start: Optional[datetime]
     end: Optional[datetime]
+
 
 class Reference(Element):
     reference: Optional[str]
     type: Optional[AnyUrl]
     identifier: Optional[Identifier]
     display: Optional[str]
+
 
 class Identifier(Element):
     use: Optional[Code]
@@ -95,6 +109,7 @@ class Identifier(Element):
     value: Optional[str]
     period: Optional[Period]
     assigner: Optional[Reference]
+
 
 Identifier.update_forward_refs()
 Reference.update_forward_refs()
@@ -108,4 +123,4 @@ class Quantity(BaseModel):
     code: Code
 
     def __str__(self) -> str:
-        return f"{self.value} {self.unit}" 
+        return f"{self.value} {self.unit}"

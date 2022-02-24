@@ -32,7 +32,7 @@ class SCTImplicitValueSet(ValueSet):
             )
     def __contains__(self, item: Union[AbstractCoding, CodeableConcept]) -> bool:
         if isinstance(item, CodeableConcept):
-            raise NotImplementedError()
+            return self.fhir_server.validate_code_in_valueset(self, codeableConcept=item)
         if self.fhir_server:
             return self.fhir_server.validate_code_in_valueset(self, coding=item)
         else:
