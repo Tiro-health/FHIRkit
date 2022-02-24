@@ -4,3 +4,7 @@
 __pycache__
 tiro_fhir/__pycache__
 build
+tiro_fhir.egg-info/dependency_links.txt
+tiro_fhir.egg-info/PKG-INFO
+tiro_fhir.egg-info/SOURCES.txt
+tiro_fhir.egg-info/top_level.txt
