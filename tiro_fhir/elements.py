@@ -1,36 +1,30 @@
 from __future__ import annotations
 from datetime import datetime
 import itertools
-from typing import Any, ForwardRef, Literal, Optional, Sequence, Union
-from pydantic.dataclasses import dataclass
+from typing import Any, ForwardRef, Literal, Optional, Sequence, Union, List
 from pydantic import AnyUrl, BaseModel, Field
 from tiro_fhir.data_types import Code, XHTML
 
 
-@dataclass
-class Element:
+class Element(BaseModel):
     id: Optional[str]
     extension: Sequence[Extension] = Field([], repr=False)
 
 
-@dataclass
 class Narrative(Element):
     status: Literal["generated", "extensions", "additional", "required"]
     div: XHTML
 
 
-@dataclass
 class Extension(Element):
     url: AnyUrl
     value: Optional[Any]
 
 
-@dataclass
 class BackboneElement(Element):
     modifierExtension: Sequence[Extension] = Field([], repr=False)
 
 
-@dataclass
 class AbstractCoding(Element):
     """FHIR Terminology based model for concepts"""
 
@@ -42,7 +36,6 @@ class AbstractCoding(Element):
         allow_mutation = False
 
 
-@dataclass
 class Coding(AbstractCoding):
     def __repr__(self) -> str:
         return f'"{self.display}" {self.system}|{self.code}'
