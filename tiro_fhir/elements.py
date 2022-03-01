@@ -3,7 +3,7 @@ from datetime import datetime
 import itertools
 from typing import Any, ForwardRef, Literal, Optional, Sequence, Union, List
 from pydantic import AnyUrl, BaseModel, Field
-from tiro_fhir.data_types import Code, XHTML
+from tiro_fhir.data_types import Code, XHTML, dateTime
 
 
 class Element(BaseModel):
@@ -115,3 +115,8 @@ class Quantity(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.value} {self.unit}"
+
+
+class Period(Element):
+    start: Optional[dateTime]
+    end: Optional[dateTime]

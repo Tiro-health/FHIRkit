@@ -1,8 +1,9 @@
-from typing import List, Optional, Sequence
-from pydantic import AnyUrl, BaseModel, HttpUrl, Field
+from __future__ import annotations
+from typing import List, Optional, Sequence, Tuple, Union, Generator
+from pydantic import AnyUrl, BaseModel, HttpUrl, Field, PrivateAttr
 from tiro_fhir.Server import AbstractFHIRServer
 from tiro_fhir.data_types import Code, Id, Instant
-from tiro_fhir.elements import Narrative, Extension, Coding
+from tiro_fhir.elements import BackboneElement, Element, Narrative, Extension, Coding
 
 
 class Meta(BaseModel):
@@ -15,7 +16,7 @@ class Meta(BaseModel):
 
 
 class Resource(BaseModel):
-    fhir_server: Optional[AbstractFHIRServer] = Field(None, exclude=True, repr=False)
+    _fhir_server: Optional[AbstractFHIRServer] = PrivateAttr(None)
 
     resourceType: str
     id: Optional[str] = Field(None, repr=False)
@@ -23,22 +24,30 @@ class Resource(BaseModel):
     implicitRules: Optional[HttpUrl] = Field(None, repr=False)
     language: Optional[Code] = Field(None, repr=False)
 
+    def to_record(self, keys: Optional[Sequence[str]]):
+        return dict(
+            filter(
+                lambda t: t[1] is not None,
+                self._assemble_key_recursively(self),
+            ),
+        )
+
+    def _assemble_key_recursively(
+        self, obj: Union[Element, Resource]
+    ) -> Generator[Tuple[Tuple[str, ...], Element]]:
+        if isinstance(obj, (tuple, list)):
+            for key, value in enumerate(obj):
+                for childKeys, childValue in self._assemble_key_recursively(value):
+                    yield (key, *childKeys), childValue
+        elif isinstance(obj, (BackboneElement, Resource)):
+            for key, value in obj:
+                for childKeys, childValue in self._assemble_key_recursively(value):
+                    yield (key, *childKeys), childValue
+        else:
+            yield (), obj
+
     class Config:
         arbitrary_types_allowed = True
-
-    def _iter_to_element_or_datatype():
-        pass
-
-    def record(self, keys: Optional[Sequence[str]] = None):
-        record = {}
-        for field_name, value in self:
-            if value:
-                if field_name.startswith("value"):
-                    field_name = "value"
-                if keys and field_name not in keys:
-                    continue
-                record.update({field_name: value})
-        return record
 
 
 class DomainResource(Resource):

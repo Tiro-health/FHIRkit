@@ -10,9 +10,12 @@ from tiro_fhir.data_types import Code
 from tiro_fhir.snomed.ValueSet import SCTImplicitValueSet
 from tiro_fhir.elements import AbstractCoding, CodeableConcept, Coding
 
+# DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
+DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
+
 
 class SCTFHIRTerminologyServer(AbstractFHIRServer):
-    def __init__(self, baseUrl: Union[str, HttpUrl]) -> None:
+    def __init__(self, baseUrl: Union[str, HttpUrl] = DEFAULT_SCT_URL) -> None:
         self.baseUrl = parse_obj_as(HttpUrl, baseUrl)
 
     def expand_value_set(self, implicit_vs: SCTImplicitValueSet, **kwargs):
@@ -139,10 +142,8 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
             )
 
         req_url = f"{self.baseUrl}/{path}"
-        headersList = {
-            "Accept": "application/json",
-        }
-        payload = Parameter(parameter=parameters).dict()
+        headersList = {"Accept": "application/json", "Content-type": "application/json"}
+        payload = Parameter(parameter=parameters).json()
         try:
 
             # TODO parse this as FHIR Resource!
@@ -164,3 +165,6 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
             )
 
         return response.result
+
+
+DEFAULT_TERMINOLOGY_SERVER = SCTFHIRTerminologyServer()

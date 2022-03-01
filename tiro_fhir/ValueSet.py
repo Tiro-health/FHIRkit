@@ -1,6 +1,6 @@
 from typing import Iterable, Iterator, List, Literal, Optional, Union
-from pydantic import AnyUrl, BaseModel, Field, HttpUrl, parse_obj_as
-from tiro_fhir.elements import CodeableConcept, Coding, AbstractCoding
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl
+from tiro_fhir.elements import BackboneElement, CodeableConcept, Coding, AbstractCoding
 from tiro_fhir.Resource import Resource
 
 
@@ -16,7 +16,7 @@ class VSConcept(BaseModel):
     designation: List[VSDesignation] = Field(default=[])
 
 
-class VSFilter(BaseModel):
+class VSFilter(BackboneElement):
     property: str
     op: Literal[
         "=",
@@ -34,7 +34,7 @@ class VSFilter(BaseModel):
     value: str
 
 
-class VSInclude(BaseModel):
+class VSInclude(BackboneElement):
     system: HttpUrl
     version: Optional[str]
     concept: Iterable[VSConcept] = Field(default=[])
