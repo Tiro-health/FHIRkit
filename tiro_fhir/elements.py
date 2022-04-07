@@ -2,9 +2,8 @@ from __future__ import annotations
 from datetime import datetime
 import itertools
 from typing import Any, ForwardRef, Literal, Optional, Sequence, Union, List
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from tiro_fhir.data_types import Code, XHTML, dateTime
-
 
 class Element(BaseModel):
     id: Optional[str]
@@ -30,7 +29,7 @@ class AbstractCoding(Element):
 
     display: Optional[str]
     code: str
-    system: str
+    system: Optional[Union[HttpUrl,str]]
 
     class Config:
         allow_mutation = False
