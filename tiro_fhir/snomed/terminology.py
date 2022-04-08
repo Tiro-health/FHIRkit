@@ -1,40 +1,87 @@
 from __future__ import annotations
 import logging
 from time import time
-from typing import List, Optional, Union
+from typing import ClassVar, List, Optional, Union
 import requests
-from pydantic import HttpUrl, parse_obj_as
-from tiro_fhir.Parameter import Parameter
-from tiro_fhir.Server import AbstractFHIRServer
+from pydantic import HttpUrl, ValidationError, parse_obj_as
+from tiro_fhir.Parameter import Parameters
+from tiro_fhir.Server import AbstractFHIRTerminologyServer
 from tiro_fhir.data_types import Code
-from tiro_fhir.snomed.ValueSet import SCTImplicitValueSet
-from tiro_fhir.elements import AbstractCoding, CodeableConcept, Coding
+from tiro_fhir.elements import CodeableConcept, Coding
+from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
 
 # DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
 DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
+# DEFAULT_SCT_URL = "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
+
+Response = Union[Parameters, OperationOutcome]
 
 
-class SCTFHIRTerminologyServer(AbstractFHIRServer):
-    def __init__(self, baseUrl: Union[str, HttpUrl] = DEFAULT_SCT_URL) -> None:
+class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
+    DEFAULT_URL: ClassVar[str] = "https://r4.ontoserver.csiro.au/fhir"
+    DEFAULT_SERVER: ClassVar[Optional[SCTFHIRTerminologyServer]] = None
+
+    def __init__(self, baseUrl: Optional[Union[str, HttpUrl]] = None) -> None:
+        baseUrl = baseUrl or self.DEFAULT_URL
         self.baseUrl = parse_obj_as(HttpUrl, baseUrl)
 
-    def expand_value_set(self, implicit_vs: SCTImplicitValueSet, **kwargs):
-        assert (
-            implicit_vs.url is not None
-        ), f"Can't expand an implicit ValueSet without URL. Received {implicit_vs}"
+    @classmethod
+    def default_server(cls):
+        if cls.DEFAULT_SERVER is None:
+            cls.DEFAULT_SERVER = SCTFHIRTerminologyServer()
+        return cls.DEFAULT_SERVER
+
+    def get_resource(
+        self, resourceType: str, *, id: Optional[str] = None, url: Optional[str] = None
+    ):
+        path = resourceType
+        if id:
+            path += "/" + id
+        req_url = f"{self.baseUrl}/{path}"
+        if url:
+            req_url = url
+        headers = {"Accept": "application/json", "Content-type": "application/json"}
+        try:
+            raw_response = requests.get(req_url, headers=headers)
+
+            if raw_response.status_code != 200:
+                logging.warn(
+                    "Received an error from the snowstorm server (%s) after sending the following request %s",
+                    raw_response.text,
+                    req_url,
+                )
+            response = raw_response.json()
+            response = parse_obj_as(Response, raw_response.json())
+        except ValidationError:
+            raise ConnectionError(
+                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
+            )
+        except:
+            raise RuntimeWarning(
+                "Failed when calling {endpoint} on {baseurl}".format(
+                    endpoint=path, baseurl=self.baseUrl
+                )
+            )
+
+        if isinstance(response, OperationOutcome):
+            raise OperationOutcomeException(response)
+
+        return response
+
+    def valueset_expand(self, url: Union[str, HttpUrl], **kwargs):
         path = "ValueSet/$expand"
         page_size = 200
         offset = 0
 
         query = "url={url}&count={count}&offset={offset}".format(
-            url=implicit_vs.url, count=page_size, offset=offset
+            url=url, count=page_size, offset=offset
         )
         more_results_available = True
         oper_outcome_count = 0
 
         while more_results_available:
             req_url = f"{self.baseUrl}/{path}?{query}"
-            headersList = {
+            headers = {
                 "Accept": "application/json",
             }
             payload = ""
@@ -42,7 +89,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
 
                 # TODO parse this as FHIR Resource!
                 raw_response = requests.request(
-                    "GET", req_url, data=payload, headers=headersList
+                    "GET", req_url, data=payload, headers=headers
                 )
                 if raw_response.status_code != 200:
                     logging.warn(
@@ -60,7 +107,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
                 if response["resourceType"] == "OperationOutcome":
                     raise ResourceWarning(
                         "Snowstorm reported some resource issues.",
-                        **response["issue"][0].values(),
+                        *response["issue"][0].values(),
                     )
 
                 assert (
@@ -105,45 +152,38 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
                     )
                 more_results_available = remaining > 0
 
-    def validate_code_in_valueset(
+    def valueset_validate_code(
         self,
-        implicit_vs: Union[SCTImplicitValueSet, HttpUrl],
+        url: Union[str, HttpUrl],
         code: Optional[Code] = None,
         display: Optional[str] = None,
         system: Optional[HttpUrl] = None,
-        coding: Optional[AbstractCoding] = None,
+        coding: Optional[Coding] = None,
         codeableConcept: Optional[CodeableConcept] = None,
     ) -> bool:
-        if isinstance(implicit_vs, SCTImplicitValueSet):
-            assert (
-                implicit_vs.url is not None
-            ), f"Can't expand an implicit ValueSet without URL. Received {implicit_vs}"
-            implicit_vs = implicit_vs.url
-
         assert (
             code or coding or codeableConcept
         ), "At least a code, coding or codeableConcept must be given to validate."
 
         path = "ValueSet/$validate-code"
 
-        parameters = [dict(name="url", valueUri=str(implicit_vs))]
+        parameters = [dict(name="url", valueUri=str(url))]
 
-        if code:
+        if code and system:
             parameters.append(dict(name="code", valueCode=code))
-            if system:
-                parameters.append(dict(name="system", valueUri=str(system)))
+            parameters.append(dict(name="system", valueUri=str(system)))
             if display:
                 parameters.append(dict(name="display", valueString=display))
         if coding:
             parameters.append(dict(name="coding", valueCoding=coding))
         if codeableConcept:
             parameters.append(
-                dict(name="codeableConcept", valueCodeableConcpet=codeableConcept)
+                dict(name="codeableConcept", valueCodeableConcept=codeableConcept)
             )
 
         req_url = f"{self.baseUrl}/{path}"
         headersList = {"Accept": "application/json", "Content-type": "application/json"}
-        payload = Parameter(parameter=parameters).json()
+        payload = Parameters(parameter=parameters).json(exclude_none=True)
         try:
 
             # TODO parse this as FHIR Resource!
@@ -156,7 +196,11 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
                     raw_response.text,
                     req_url,
                 )
-            response = Parameter.parse_obj(raw_response.json())
+            response = parse_obj_as(Response, raw_response.json())
+        except ValidationError:
+            raise ConnectionError(
+                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
+            )
         except:
             raise RuntimeWarning(
                 "Failed when calling {endpoint} on {baseurl}".format(
@@ -164,7 +208,10 @@ class SCTFHIRTerminologyServer(AbstractFHIRServer):
                 )
             )
 
-        return response.result
+        if isinstance(response, OperationOutcome):
+            raise OperationOutcomeException(response)
+
+        return response
 
 
 DEFAULT_TERMINOLOGY_SERVER = SCTFHIRTerminologyServer()

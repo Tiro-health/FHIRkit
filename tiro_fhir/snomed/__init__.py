@@ -1,3 +1,3 @@
-from .elements import SCTCoding,SCTConcept
-from .ValueSet import ValueSet
+from .elements import SCTCoding, SCTConcept
 from .terminology import SCTFHIRTerminologyServer
+from .ValueSet import ValueSet

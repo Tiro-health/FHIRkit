@@ -1,7 +1,12 @@
 from datetime import datetime
-from typing import Literal, Optional, Sequence, Union
+from typing import ClassVar, Dict, Literal, Optional, Sequence, Set, Tuple, Union
 
-from pydantic import BaseModel, Field, ValidationError, validator
+from pydantic import BaseModel, Field, PrivateAttr, ValidationError, validator
+from tiro_fhir.ChoiceTypeMixin import (
+    AbstractChoiceTypeMixin,
+    ChoiceTypeMixinBase,
+    validate_choice_types,
+)
 from tiro_fhir.Resource import DomainResource
 from tiro_fhir.data_types import Code, dateTime
 from tiro_fhir.elements import (
@@ -14,54 +19,37 @@ from tiro_fhir.elements import (
 )
 
 # TODO find better solution for multitype value
-class ObservationValueChoiceTypeMixin(BaseModel):
-    valueString: Optional[str] = Field(None, exclude=True)
-    valueQuantity: Optional[Quantity] = Field(None, exclude=True)
-    valueInteger: Optional[int] = Field(None, exclude=True)
-    valueCodeableConcept: Optional[CodeableConcept] = Field(None, exclude=True)
-    valueBoolean: Optional[bool] = Field(None, exclude=True)
+class ObservationValueChoiceTypeMixin(ChoiceTypeMixinBase):
+    _choice_type_fields: ClassVar[Set[str]] = [
+        "valueString",
+        "valueQuantity",
+        "valueInteger",
+        "valueCodeableConcept",
+        "valueBoolean",
+    ]
+    _polymorphic_field: ClassVar[Set[str]] = "value"
+    valueString: Optional[str] = None
+    valueQuantity: Optional[Quantity] = None
+    valueInteger: Optional[int] = None
+    valueCodeableConcept: Optional[CodeableConcept] = None
+    valueBoolean: Optional[bool] = None
     value: Union[str, Quantity, int, CodeableConcept, bool] = None
 
-    @validator("value", pre=True, always=True)
-    def determine_value(cls, v, values):
-        if v is not None:
-            return v
-
-        # if Observation.value[x] is not send through 'value' check other typed field names
-        non_null_values = list(
-            filter(
-                lambda t: t[0].startswith("value") and t[1] is not None, values.items()
-            )
-        )
-        if len(non_null_values) == 0:
-            raise ValidationError("Observation.value[x] can not be None.")
-        elif len(non_null_values) > 1:
-            raise ValidationError("Observation.value[x] can only have one value.")
-        return non_null_values[0][1]
+    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
+        validate_choice_types
+    )
 
 
-class ObservationEffectiveChoiceTypeMixin(BaseModel):
-    effectiveDateTime: Optional[dateTime] = Field(None, exclude=True)
-    effectivePeriod: Optional[Period] = Field(None, exclude=True)
+class ObservationEffectiveChoiceTypeMixin(ChoiceTypeMixinBase):
+    _choice_type_fields: ClassVar[Set[str]] = ["effectiveDateTime", "effectivePeriod"]
+    _polymorphic_field: ClassVar[str] = "effective"
+    effectiveDateTime: Optional[dateTime] = None
+    effectivePeriod: Optional[Period] = None
     effective: Union[dateTime, Period] = None
 
-    @validator("effective", pre=True, always=True)
-    def determine_effective(cls, v, values):
-        if v is not None:
-            return v
-
-        # if Observation.effective[x] is not send through 'value' check other typed field names
-        non_null_values = list(
-            filter(
-                lambda t: t[0].startswith("effective") and t[1] is not None,
-                values.items(),
-            )
-        )
-        if len(non_null_values) == 0:
-            raise ValidationError("Observation.effective[x] can not be None.")
-        elif len(non_null_values) > 1:
-            raise ValidationError("Observation.effective[x] can only have one value.")
-        return non_null_values[0][1]
+    validate_effective = validator(
+        "effective", pre=True, always=True, allow_reuse=True
+    )(validate_choice_types)
 
 
 class ObservationComponent(BackboneElement, ObservationValueChoiceTypeMixin):

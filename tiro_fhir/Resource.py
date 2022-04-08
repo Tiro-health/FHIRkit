@@ -1,9 +1,22 @@
 from __future__ import annotations
-from typing import List, Optional, Sequence, Tuple, Union, Generator
+from typing import (
+    AbstractSet,
+    Any,
+    List,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+    Generator,
+)
 from pydantic import AnyUrl, BaseModel, HttpUrl, Field, PrivateAttr
-from tiro_fhir.Server import AbstractFHIRServer
+from tiro_fhir.Server import AbstractFHIRTerminologyServer
 from tiro_fhir.data_types import Code, Id, Instant
 from tiro_fhir.elements import BackboneElement, Element, Narrative, Extension, Coding
+from tiro_fhir.ChoiceTypeMixin import AbstractChoiceTypeMixin
 
 
 class Meta(BaseModel):
@@ -15,8 +28,8 @@ class Meta(BaseModel):
     tag: List[Coding] = []
 
 
-class Resource(BaseModel):
-    _fhir_server: Optional[AbstractFHIRServer] = PrivateAttr(None)
+class Resource(AbstractChoiceTypeMixin, BaseModel):
+    _fhir_server: Optional[AbstractFHIRTerminologyServer] = PrivateAttr(None)
 
     resourceType: str
     id: Optional[str] = Field(None, repr=False)
@@ -24,12 +37,59 @@ class Resource(BaseModel):
     implicitRules: Optional[HttpUrl] = Field(None, repr=False)
     language: Optional[Code] = Field(None, repr=False)
 
-    def to_record(self, keys: Optional[Sequence[str]]):
+    def record(
+        self,
+        by_alias: bool = False,
+        include: Union[
+            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
+        ] = None,
+        exclude: Union[
+            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
+        ] = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = True,
+        exclude_choice_type: bool = True,
+        exclude_polymorphic: bool = False,
+    ):
+        tuple_generator = self._iter(
+            False,
+            by_alias,
+            include,
+            exclude,
+            exclude_unset,
+            exclude_defaults,
+            exclude_none,
+            exclude_choice_type=exclude_choice_type,
+            exclude_polymorphic=exclude_polymorphic,
+        )
+        return dict(self._assemble_key_recursively(tuple_generator))
+
+    def dict(
+        self,
+        *,
+        by_alias: bool = False,
+        include: Union[
+            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
+        ] = None,
+        exclude: Union[
+            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
+        ] = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -> Dict[str, Any]:
         return dict(
-            filter(
-                lambda t: t[1] is not None,
-                self._assemble_key_recursively(self),
-            ),
+            super()._iter(
+                True,
+                by_alias,
+                include,
+                exclude,
+                exclude_unset,
+                exclude_defaults,
+                exclude_none,
+                exclude_choice_type=False,
+            )
         )
 
     def _assemble_key_recursively(
@@ -39,12 +99,20 @@ class Resource(BaseModel):
             for key, value in enumerate(obj):
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
-        elif isinstance(obj, (BackboneElement, Resource)):
+        elif isinstance(obj, (BackboneElement, Resource, Generator)):
             for key, value in obj:
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
         else:
             yield (), obj
+
+    @property
+    def choice_type_fields(self) -> Set[str]:
+        return set()
+
+    @property
+    def polymorphic_fields(self) -> Set[str]:
+        return set()
 
     class Config:
         arbitrary_types_allowed = True

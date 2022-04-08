@@ -1,92 +1,80 @@
-from datetime import date, datetime
-from typing import Any, ClassVar, Generic, List, Literal, Optional, Sequence, TypeVar, Union
-import warnings
-from pydantic import BaseModel, Field, HttpUrl, StrictInt, StrictStr, root_validator, StrictBool
-from pydantic.generics import GenericModel
+from typing import Any, ClassVar, List, Optional, Set, Union
+from pydantic import (
+    Field,
+    HttpUrl,
+    StrictInt,
+    StrictStr,
+    StrictBool,
+    validator,
+)
+from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
 from tiro_fhir.Resource import Resource
-from tiro_fhir.elements import BackboneElement
+from tiro_fhir.data_types import Code
+from tiro_fhir.elements import BackboneElement, CodeableConcept, Coding
 
-TYPE_TO_NAME = {
-    str: "String",
-    bool: "Boolean",
-    int: "Integer",
-    float: "Float",
-    datetime: "DateTime",
-    date: "Date",
-    HttpUrl: "Uri"
-}
 
-class MultiValueType(BaseModel):
-    _polymorphic_fields:ClassVar[Sequence[str]] = ["value",]
-    valueBoolean: Optional[StrictBool]
-    valueString: Optional[StrictStr]
-    valueUri: Optional[HttpUrl]
-    valueInteger: Optional[StrictInt]
+class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):
+    _choice_type_fields: ClassVar[Set[str]] = [
+        "valueBoolean",
+        "valueString",
+        "valueCode",
+        "valueCoding",
+        "valueCodeableConcept",
+        "valueUri",
+        "valueInteger",
+    ]
+    _polymorphic_field: ClassVar[Set[str]] = "value"
+    valueBoolean: Optional[StrictBool] = Field(None)
+    valueString: Optional[StrictStr] = Field(None)
+    valueCode: Optional[Code] = Field(None)
+    valueCoding: Optional[Coding] = Field(None)
+    valueCodeableConcept: Optional[CodeableConcept] = Field(None)
+    valueUri: Optional[HttpUrl] = Field(None)
+    valueInteger: Optional[StrictInt] = Field(None)
+    value: Union[
+        StrictBool, StrictStr, Code, Coding, CodeableConcept, HttpUrl, StrictInt
+    ] = Field(None, exclude=True)
 
-    @root_validator(pre=True)
-    def validate_value(cls, values) -> None:
-        for polymorphic_field in cls._polymorphic_fields:
-            if polymorphic_field in values:
-                value = values[polymorphic_field]
-                ext_field_name = polymorphic_field
-                if type(value) in TYPE_TO_NAME:
-                    ext_field_name += TYPE_TO_NAME[type(value)]
-                else:
-                    ext_field_name += str(type(value).__name__).capitalize()
-                values.update({ext_field_name: value})
-        return values
+    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
+        validate_choice_types
+    )
 
-    def __iter__(self, *args, reduce_polymorphic:bool=False, **kwargs): 
-        for (key, value) in super().__iter__(*args, **kwargs):
-            yielded = False
-            if reduce_polymorphic and value:
-                for polymophic_field in self._polymorphic_fields:
-                    if key.startswith(polymophic_field):
-                        yield (polymophic_field, value)
-                        yielded = True
-                        break
-                if not yielded:
-                    yield (key, value)
 
-    def dict(self, *, include: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, exclude: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False, reduce_polymorphic: bool = False):
-        """
-        Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
-
-        """
-        if skip_defaults is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}.dict(): "skip_defaults" is deprecated and replaced by "exclude_unset"',
-                DeprecationWarning,
-            )
-            exclude_unset = skip_defaults
-
-        return dict(
-            self._iter(
-                to_dict=True,
-                by_alias=by_alias,
-                include=include,
-                exclude=exclude,
-                exclude_unset=exclude_unset,
-                exclude_defaults=exclude_defaults,
-                exclude_none=exclude_none,
-                reduce_polymorphic=reduce_polymorphic
-            )
-        )
 class AbstractParameter(BackboneElement):
     name: str
-  
 
-Name = TypeVar("Name")
-Value = TypeVar("Value")
 
-class ValueParameter(GenericModel, Generic[Name, Value], AbstractParameter):
-    name: Name
-    value: Value
-    resource: None = Field(None, const=True)
+class ValueParameter(
+    AbstractParameter,
+    ParameterValueChoiceTypeMixin,
+):
+    def __str__(self) -> str:
+        return f"{self.name}:{self.value}"
 
-class Parameter(Resource):
-    resourceType = Field("Parameter", const=True)
-    parameter: List[AbstractParameter]
+
+class ResourceParameter(AbstractParameter):
+    resource: Optional[Resource]
+
+
+class MultiPartParameter(AbstractParameter):
+    part: List[ValueParameter]
+
+    def __getattribute__(self, __name: str) -> Any:
+        try:
+            return super().__getattribute__(__name)
+        except AttributeError:
+            for param in self.part:
+                if param.name == __name:
+                    return param.value
+            raise
+
+    def __str__(self) -> str:
+        return "\n\tpart: \n" + "\n\t".join(" " + str(p) for p in self.part)
+
+
+class Parameters(Resource):
+    resourceType = Field("Parameters", const=True)
+    parameter: List[Union[ValueParameter, ResourceParameter, MultiPartParameter]]
 
     def __getattribute__(self, __name: str) -> Any:
         try:
@@ -96,3 +84,6 @@ class Parameter(Resource):
                 if param.name == __name:
                     return param.value
             raise
+
+    def __str__(self) -> str:
+        return "Parameters: \n" + "\n".join(" " + str(p) for p in self.parameter)

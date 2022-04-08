@@ -1,9 +1,20 @@
 from __future__ import annotations
 from datetime import datetime
 import itertools
-from typing import Any, ForwardRef, Literal, Optional, Sequence, Union, List
-from pydantic import AnyUrl, BaseModel, Field
-from tiro_fhir.data_types import Code, XHTML, dateTime
+from typing import (
+    Any,
+    ClassVar,
+    ForwardRef,
+    Literal,
+    Optional,
+    Sequence,
+    Set,
+    Union,
+    List,
+)
+from pydantic import AnyUrl, BaseModel, Field, validator
+from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from tiro_fhir.data_types import Code, XHTML
 
 
 class Element(BaseModel):
@@ -56,10 +67,10 @@ CodeableConcept = ForwardRef("CodeableConcept")
 
 
 class CodeableConcept(BaseModel):
-    """FHIR Terminology based mdoel for CodeableConcepts"""
+    """FHIR Terminology based model for CodeableConcepts"""
 
-    text: str
-    coding: Optional[List[Coding]] = Field(default=[])
+    text: Optional[str]
+    coding: Sequence[Coding] = Field(default=[])
     active: Optional[bool]
 
     def __str__(self) -> str:
@@ -106,7 +117,7 @@ Identifier.update_forward_refs()
 Reference.update_forward_refs()
 
 
-class Quantity(BaseModel):
+class Quantity(Element):
     value: float
     comparator: Optional[Literal["<", "<=", ">=", ">"]]
     unit: str
@@ -117,6 +128,42 @@ class Quantity(BaseModel):
         return f"{self.value} {self.unit}"
 
 
-class Period(Element):
-    start: Optional[dateTime]
-    end: Optional[dateTime]
+class SimpleQuantity(Quantity):
+    comparator: None = Field(..., const=True)
+
+
+class Range(Element):
+    low: Optional[SimpleQuantity]
+    high: Optional[SimpleQuantity]
+
+
+class ContactPoint(Element):
+    system: Optional[
+        Literal["phone", "fax", "email", "pager", "url", "sms", "other"]
+    ] = None
+    value: Optional[str] = None
+    use: Optional[Literal["home", "work", "temp", "old", "mobile"]] = None
+    period: Period
+
+
+class UsageContextValueChoiceType(ChoiceTypeMixinBase):
+    _choice_type_fields: ClassVar[Set[str]] = [
+        "valueQuantity",
+        "valueRange",
+        "valueCodeableConcept",
+        "valueReference",
+    ]
+    _polymorphic_field: ClassVar[Set[str]] = "value"
+    valueQuantity: Optional[Quantity] = None
+    valueRange: Optional[Range] = None
+    valueCodeableConcept: Optional[CodeableConcept] = None
+    valueReference: Optional[Reference] = None
+    value: Union[Quantity, Range, CodeableConcept, Reference] = None
+
+    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
+        validate_choice_types
+    )
+
+
+class UsageContext(Element, UsageContextValueChoiceType):
+    code: Coding

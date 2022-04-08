@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import Field, HttpUrl
-from tiro_fhir.Server import AbstractFHIRServer
+from tiro_fhir.Server import AbstractFHIRTerminologyServer
 from tiro_fhir.elements import CodeableConcept, Coding
 from tiro_fhir.ValueSet import ValueSet
 from .ValueSet import (
@@ -23,7 +23,7 @@ class SCTCoding(Coding):
         else:
             super().__init__(*args, **kwargs)  # business as usual, Pydantic takes over
 
-    def descendants(self) -> ValueSet:
+    def descendants(self):
         return SCTImplicitValueSet(
             url=f"{self.system}?fhir_vs=isa/{self.code}",
             compose=SCTImplicitCompose(
