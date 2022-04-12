@@ -109,8 +109,8 @@ class Quantity(BaseModel):
     value: float
     comparator: Optional[Literal["<", "<=", ">=", ">"]]
     unit: str
-    system: AnyUrl
-    code: Code
+    system: Optional[AnyUrl]
+    code: Optional[Code]
 
     def __str__(self) -> str:
         return f"{self.value} {self.unit}"
