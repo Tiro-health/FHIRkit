@@ -1,5 +1,5 @@
 import abc
-from datetime import date
+from datetime import date, datetime
 from typing import Iterable, Iterator, List, Literal, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from tiro_fhir.data_types import dateTime
@@ -40,9 +40,9 @@ class VSFilter(BackboneElement):
 class VSInclude(BackboneElement):
     system: Optional[HttpUrl]
     version: Optional[str]
-    concept: Iterable[VSConcept] = Field(default=[])
-    filter: Iterable[VSFilter] = Field(default=[])
-    valueSet: Iterable[HttpUrl] = Field(default=[])
+    concept: Sequence[VSConcept] = Field(default=[])
+    filter: Sequence[VSFilter] = Field(default=[])
+    valueSet: Sequence[HttpUrl] = Field(default=[])
 
 
 class VSCompose(BaseModel):
@@ -60,9 +60,9 @@ class VSCodingWithDesignation(Coding):
 class VSExpansion(BaseModel):
     offset: Optional[int]
     total: Optional[int]
-    contains: List[VSCodingWithDesignation]
+    contains: List[VSCodingWithDesignation] = []
     identifier: Optional[HttpUrl]
-    timestamp: dateTime
+    timestamp: dateTime = Field(default_factory=datetime.now)
 
 
 class ValueSet(Resource):
@@ -73,13 +73,13 @@ class ValueSet(Resource):
     expansion: Optional[VSExpansion]
     useContext: Sequence[UsageContext] = Field([], repr=True)
 
-    def __iter__(self) -> Iterator[VSCodingWithDesignation]:
+    def __iter__(self):
         if not self.has_expanded:
             self.expand()
         for coding in self.expansion.contains:
             yield coding
 
-    def __len__(self) -> Iterator[Coding]:
+    def __len__(self):
         if not self.has_expanded:
             self.expand()
         return self.expansion.total or len(self.expansion.contains)
@@ -99,11 +99,41 @@ class ValueSet(Resource):
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         raise NotImplementedError()
 
-    def append(self, coding: VSCodingWithDesignation):
-        self.compose.include.append(VSInclude(system=coding.system, concept=[coding]))
+    def init_expansion(self):
+        self.expansion = VSExpansion()
+
+    def append(
+        self,
+        code: VSCodingWithDesignation,
+        extend_compose: bool = True,
+        init_expansion_if_none: bool = True,
+    ):
+        if extend_compose:
+            self.compose.include.append(VSInclude(system=code.system, concept=[code]))
+
+        if self.expansion is None and init_expansion_if_none:
+            self.init_expansion()
 
         if self.expansion:
-            self.expansion.contains.append(coding)
+            self.expansion.contains.append(code)
+
+    def extend(
+        self,
+        codes: Iterable[VSCodingWithDesignation],
+        extend_compose: bool = True,
+        init_expansion_if_none: bool = True,
+    ):
+        if extend_compose:
+            first_code, *_ = iter(codes)
+            self.compose.include.append(
+                VSInclude(system=first_code.system, concept=list(codes))
+            )
+
+        if self.expansion is None and init_expansion_if_none:
+            self.init_expansion()
+
+        if self.expansion:
+            self.expansion.contains.extend(codes)
 
 
 class SimpleValueSet(ValueSet):

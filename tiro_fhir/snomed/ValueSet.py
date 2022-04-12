@@ -32,7 +32,7 @@ class SCTImplicitValueSet(ValueSet):
     _fhir_server: SCTFHIRTerminologyServer = PrivateAttr(
         SCTFHIRTerminologyServer.default_server()
     )
-    url: Optional[HttpUrl]
+    url: Optional[Union[HttpUrl, str]]
     compose: Optional[SCTImplicitCompose]
 
     @root_validator
@@ -71,12 +71,8 @@ class SCTImplicitValueSet(ValueSet):
 
     def expand(self):
         self.ensure_fhir_server()
-        expansion = VSExpansion(contains=[])
         url = self.equivalent_url()
-
-        for code in self._fhir_server.valueset_expand(url):
-            expansion.contains.append(code)
-        self.expansion = expansion
+        self.extend(self._fhir_server.valueset_expand(url), extend_compose=False)
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         self.ensure_fhir_server()

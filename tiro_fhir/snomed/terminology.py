@@ -1,11 +1,12 @@
 from __future__ import annotations
 import logging
-from time import time
+import time
 from typing import ClassVar, List, Optional, Union
 import requests
 from pydantic import HttpUrl, ValidationError, parse_obj_as
 from tiro_fhir.Parameter import Parameters
 from tiro_fhir.Server import AbstractFHIRTerminologyServer
+from tiro_fhir.ValueSet import VSCodingWithDesignation
 from tiro_fhir.data_types import Code
 from tiro_fhir.elements import CodeableConcept, Coding
 from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
@@ -20,6 +21,8 @@ Response = Union[Parameters, OperationOutcome]
 class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
     DEFAULT_URL: ClassVar[str] = "https://r4.ontoserver.csiro.au/fhir"
     DEFAULT_SERVER: ClassVar[Optional[SCTFHIRTerminologyServer]] = None
+    RETRY_COUNT: int = 3
+    RETRY_PAUSE: int = 10
 
     def __init__(self, baseUrl: Optional[Union[str, HttpUrl]] = None) -> None:
         baseUrl = baseUrl or self.DEFAULT_URL
@@ -116,7 +119,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                 if "expansion" in response and "contains" in response["expansion"]:
 
                     yield from parse_obj_as(
-                        List[Coding], response["expansion"]["contains"]
+                        List[VSCodingWithDesignation], response["expansion"]["contains"]
                     )
                     remaining = max(
                         response["expansion"]["total"]
@@ -130,12 +133,12 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                         + str(response)
                     )
             except ResourceWarning:
-                if oper_outcome_count >= 3:
+                if oper_outcome_count >= self.RETRY_COUNT:
                     raise
                 logging.info(
                     "Received an OperationOutcome. Waiting 15 seconds for the server to catchup."
                 )
-                time.sleep(15)
+                time.sleep(self.RETRY_SLEEP)
                 oper_outcome_count += 1
 
             except Exception:
