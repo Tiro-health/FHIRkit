@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Any, ClassVar, Literal, Optional, Sequence, Set, Union
 from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
 from tiro_fhir.Resource import DomainResource
-from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
 from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
 from tiro_fhir.elements import (
     BackboneElement,

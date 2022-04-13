@@ -10,7 +10,6 @@ from typing import (
     Sequence,
     Set,
     Union,
-    List,
 )
 from pydantic import AnyUrl, BaseModel, Field, validator
 from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
@@ -34,6 +33,10 @@ class Extension(Element):
 
 class BackboneElement(Element):
     modifierExtension: Sequence[Extension] = Field([], repr=False)
+
+
+BackboneElement.update_forward_refs()
+Element.update_forward_refs()
 
 
 class AbstractCoding(Element):
