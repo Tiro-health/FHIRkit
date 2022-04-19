@@ -45,6 +45,7 @@ class AbstractCoding(Element):
     display: Optional[str]
     code: str
     system: str
+    version: Optional[str]
 
     class Config:
         allow_mutation = False
@@ -52,10 +53,22 @@ class AbstractCoding(Element):
 
 class Coding(AbstractCoding):
     def __repr__(self) -> str:
-        return f'"{self.display}" {self.system}|{self.code}'
+        if self.display:
+            return f'"{self.display}" {self.system}|{self.code}'
+        else:
+            return f"{self.system}|{self.code}"
 
     def __str__(self) -> str:
         return self.display or f"{self.system}|{self.code}"
+
+    def fsh(self, include_display: bool = False, include_version: bool = True):
+        token = self.system
+        if self.version is not None and include_version:
+            token += "|" + self.version
+        token += "#" + self.code
+        if self.display is not None and include_display:
+            token += ' "{self.display}"'
+        return token
 
     def __eq__(self, other: AbstractCoding) -> bool:
         if isinstance(other, AbstractCoding):
@@ -129,6 +142,9 @@ class Quantity(Element):
 
     def __str__(self) -> str:
         return f"{self.value} {self.unit}"
+
+    def unit_as_coding(self):
+        return Coding(display=self.unit, code=self.code, system=self.system)
 
 
 class SimpleQuantity(Quantity):
