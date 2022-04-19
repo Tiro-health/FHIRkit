@@ -1,6 +1,6 @@
 import abc
 from datetime import date, datetime
-from typing import Iterable, Iterator, List, Literal, Optional, Sequence, Union
+from typing import Any, Iterable, Iterator, List, Literal, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from tiro_fhir.data_types import dateTime
 from tiro_fhir.elements import BackboneElement, CodeableConcept, Coding, UsageContext
@@ -9,7 +9,7 @@ from tiro_fhir.Resource import Resource
 
 class VSDesignation(BaseModel):
     language: Optional[str]
-    use: Coding
+    use: Optional[Coding]
     value: str
 
 
@@ -61,7 +61,7 @@ class VSExpansion(BaseModel):
     offset: Optional[int]
     total: Optional[int]
     contains: List[VSCodingWithDesignation] = []
-    identifier: Optional[HttpUrl]
+    identifier: Optional[AnyUrl] = None
     timestamp: dateTime = Field(default_factory=datetime.now)
 
 

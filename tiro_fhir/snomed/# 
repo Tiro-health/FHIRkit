@@ -1,6 +1,5 @@
 from __future__ import annotations
 import logging
-from urllib.parse import urlencode
 import time
 from typing import ClassVar, List, Optional, Union
 import requests
@@ -13,7 +12,7 @@ from tiro_fhir.elements import CodeableConcept, Coding
 from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
 
 # DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
-# DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
+1DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
 # TIRO_SCT_URL = "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
 
 Response = Union[Parameters, OperationOutcome]
@@ -80,7 +79,6 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
         query = "url={url}&count={count}&offset={offset}".format(
             url=url, count=page_size, offset=offset
         )
-        query += "&" + urlencode(kwargs) if kwargs else ""
         more_results_available = True
         oper_outcome_count = 0
 

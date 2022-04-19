@@ -29,7 +29,7 @@ class AbstractFHIRServer(ABC):
         type: Optional[str] = None,
         *,
         id: Optional[str] = None,
-        url: Optional[str] = None
+        url: Optional[str] = None,
     ):
         pass
 
@@ -38,15 +38,17 @@ class AbstractFHIRServer(ABC):
         if isinstance(key, HttpUrl):
             return self.get_resource(None, url=key)
         try:
-            url = HttpUrl(key)
+            url = parse_obj_as(HttpUrl, key)
         except ValidationError:
             pass
         else:
             return self.get_resource(None, url=url)
         if isinstance(key, str):
             resourceType, id = key.split("/")
-        if isinstance(key, tuple):
+        elif isinstance(key, tuple):
             resourceType, id = key
+        else:
+            raise TypeError(f"Received a key(={key}) of type {type(key)}")
         return self.get_resource(resourceType, id=id)
 
 

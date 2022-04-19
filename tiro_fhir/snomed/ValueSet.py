@@ -59,20 +59,25 @@ class SCTImplicitValueSet(ValueSet):
                 self.compose is not None
             ), "If no url is specified at least a compose section should be available"
             inclusion = self.compose.include[0]
-            if inclusion.filter[0].property == "constraint":
+            filter_rule = inclusion.filter[0]
+            if filter_rule.property == "constraint" and filter_rule.op == "=":
                 url = inclusion.version or inclusion.system or SCT_URI
                 url += "?fhir_vs=ecl/" + inclusion.filter[0].value
-            elif inclusion.filter[0].property == "constraint":
+            elif filter_rule.property == "concept" and filter_rule.op == "is-a":
                 url = inclusion.version or inclusion.system or SCT_URI
                 url += "?fhir_vs=isa/" + inclusion.filter[0].value
             else:
-                raise RuntimeError("Unexepected case in if-else statement.")
+                raise RuntimeError(
+                    f"Unexepected filter {inclusion.filter[0].json()} in inclusion criterium: {inclusion.json()}"
+                )
             return url
 
-    def expand(self):
+    def expand(self, **kwargs):
         self.ensure_fhir_server()
         url = self.equivalent_url()
-        self.extend(self._fhir_server.valueset_expand(url), extend_compose=False)
+        self.extend(
+            self._fhir_server.valueset_expand(url, **kwargs), extend_compose=False
+        )
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         self.ensure_fhir_server()
