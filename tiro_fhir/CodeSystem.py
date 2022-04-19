@@ -44,9 +44,15 @@ class CSConceptPropertyValueChoiceTypeMixin(ChoiceTypeMixinBase):
         validate_choice_types
     )
 
+    def __str__(self) -> str:
+        return str(self.value)
+
 
 class CSConceptProperty(BackboneElement, CSConceptPropertyValueChoiceTypeMixin):
     code: Code
+
+    def __str__(self) -> str:
+        return str(self.code) + ": " + super().__str__()
 
 
 class CSConcept(BackboneElement):
@@ -67,11 +73,10 @@ class CSConcept(BackboneElement):
             raise
 
     def __str__(self) -> str:
-
         return (
-            super().__str__()
-            + "properties: \n"
-            + "\n".join(" " + str(p) for p in self.parameter)
+            f"#{self.code} '{self.display}'"
+            + "\nproperties: \n"
+            + "\n".join(" " + str(p) for p in self.property if p.value is not None)
         )
 
 
