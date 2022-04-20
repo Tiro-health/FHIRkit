@@ -3,20 +3,28 @@ import logging
 from urllib.parse import urlencode
 import time
 from typing import ClassVar, List, Optional, Union
+from webbrowser import Opera
 import requests
-from pydantic import HttpUrl, ValidationError, parse_obj_as
+from pydantic import HttpUrl, ValidationError, parse_obj_as, parse_raw_as
 from tiro_fhir.Parameter import Parameters
 from tiro_fhir.Server import AbstractFHIRTerminologyServer
-from tiro_fhir.ValueSet import VSCodingWithDesignation
+from tiro_fhir.ValueSet import VSCodingWithDesignation, VSExpansion, ValueSet
 from tiro_fhir.data_types import Code
 from tiro_fhir.elements import CodeableConcept, Coding
 from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
+
 
 # DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
 # DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
 # TIRO_SCT_URL = "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
 
+
+class ExpandedValueset(ValueSet):
+    expansion: VSExpansion
+
+
 Response = Union[Parameters, OperationOutcome]
+VSExpansionResponse = Union[ExpandedValueset, OperationOutcome]
 
 
 class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
@@ -77,78 +85,51 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
         page_size = 200
         offset = 0
 
-        query = "url={url}&count={count}&offset={offset}".format(
-            url=url, count=page_size, offset=offset
-        )
-        query += "&" + urlencode(kwargs) if kwargs else ""
         more_results_available = True
-        oper_outcome_count = 0
 
         while more_results_available:
+            query = "url={url}&count={count}&offset={offset}".format(
+                url=url, count=page_size, offset=offset
+            )
+            query += "&" + urlencode(kwargs) if kwargs else ""
             req_url = f"{self.baseUrl}/{path}?{query}"
             headers = {
                 "Accept": "application/json",
             }
             payload = ""
+
             try:
 
-                # TODO parse this as FHIR Resource!
                 raw_response = requests.request(
                     "GET", req_url, data=payload, headers=headers
                 )
+
                 if raw_response.status_code != 200:
                     logging.warn(
                         "Received an error from the snowstorm server (%s) after sending the following request %s",
                         raw_response.text,
                         req_url,
                     )
-                response = raw_response.json()
-                assert (
-                    "resourceType" in response
-                ), "Expected a valid FHIR-resource but received " + str(response)
-                resourceType = response["resourceType"]
+                response = parse_raw_as(VSExpansionResponse, raw_response)
 
-                # first check if the server responded with a OperationOutcome to report issues
-                if response["resourceType"] == "OperationOutcome":
-                    raise ResourceWarning(
-                        "Snowstorm reported some resource issues.",
-                        *response["issue"][0].values(),
-                    )
+                if isinstance(response, OperationOutcome):
+                    raise OperationOutcomeException(response)
 
-                assert (
-                    response["resourceType"] == "ValueSet"
-                ), f"Expected 'ValueSet' Resource but received {resourceType}"
-                if "expansion" in response and "contains" in response["expansion"]:
+                yield response
 
-                    yield from parse_obj_as(
-                        List[VSCodingWithDesignation], response["expansion"]["contains"]
-                    )
-                    remaining = max(
-                        response["expansion"]["total"]
-                        - response["expansion"]["offset"]
-                        - page_size,
-                        0,
-                    )
-                else:
-                    raise RuntimeError(
-                        f"No expansion or empty expansion in response ValueSet for request: {req_url} \n"
-                        + str(response)
-                    )
-            except ResourceWarning:
-                if oper_outcome_count >= self.RETRY_COUNT:
-                    raise
-                logging.info(
-                    "Received an OperationOutcome. Waiting 15 seconds for the server to catchup."
+                offset = response["expansion"]["offset"] + page_size
+                remaining = max(response["expansion"]["total"] - offset, 0)
+
+            except ValidationError:
+                raise ConnectionError(
+                    f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
                 )
-                time.sleep(self.RETRY_PAUSE)
-                oper_outcome_count += 1
-
-            except Exception:
-                logging.warn(
-                    "Something went wrong when resolving a ECL query. Request: %s",
-                    req_url,
+            except:
+                raise RuntimeWarning(
+                    "Failed when calling {endpoint} on {baseurl}".format(
+                        endpoint=path, baseurl=self.baseUrl
+                    )
                 )
-                raise
             else:
 
                 if remaining % (page_size * 10) == 0:
@@ -191,7 +172,6 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
         payload = Parameters(parameter=parameters).json(exclude_none=True)
         try:
 
-            # TODO parse this as FHIR Resource!
             raw_response = requests.request(
                 "POST", req_url, data=payload, headers=headersList
             )

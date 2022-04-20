@@ -75,9 +75,8 @@ class SCTImplicitValueSet(ValueSet):
     def expand(self, **kwargs):
         self.ensure_fhir_server()
         url = self.equivalent_url()
-        self.extend(
-            self._fhir_server.valueset_expand(url, **kwargs), extend_compose=False
-        )
+        for expanded_vs in self._fhir_server.valueset_expand(url, **kwargs):
+            self.extend(expanded_vs.expansion.contains, extend_compose=False)
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         self.ensure_fhir_server()
