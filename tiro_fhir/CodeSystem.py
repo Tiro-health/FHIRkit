@@ -14,6 +14,10 @@ from tiro_fhir.data_types import Code, dateTime
 from tiro_fhir.metadata_types import ContactDetail
 
 
+class CodeLookupError(KeyError):
+    pass
+
+
 class CSConceptDesignation(BackboneElement):
     language: Optional[Code]
     use: Optional[Coding]
@@ -161,7 +165,7 @@ class CodeSystem(DomainResource):
                     ),
                 )
 
-        raise ValueError(
+        raise CodeLookupError(
             f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})"
         )
 
