@@ -62,7 +62,6 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                     raw_response.text,
                     req_url,
                 )
-            response = raw_response.json()
             response = parse_obj_as(Response, raw_response.json())
         except ValidationError:
             raise ConnectionError(
@@ -110,15 +109,15 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                         raw_response.text,
                         req_url,
                     )
-                response = parse_raw_as(VSExpansionResponse, raw_response)
+                response = parse_obj_as(VSExpansionResponse, raw_response.json())
 
                 if isinstance(response, OperationOutcome):
                     raise OperationOutcomeException(response)
 
                 yield response
 
-                offset = response["expansion"]["offset"] + page_size
-                remaining = max(response["expansion"]["total"] - offset, 0)
+                offset = response.expansion.offset + page_size
+                remaining = max(response.expansion.total - offset, 0)
 
             except ValidationError:
                 raise ConnectionError(
@@ -134,7 +133,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
 
                 if remaining % (page_size * 10) == 0:
                     logging.debug(
-                        f"{remaining} concepts remaining (total: {response['expansion']['total']} | page size: {page_size})."
+                        f"{remaining} concepts remaining (total: {response.expansion.total} | page size: {page_size})."
                     )
                 more_results_available = remaining > 0
 

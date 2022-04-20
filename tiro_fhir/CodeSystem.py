@@ -84,6 +84,15 @@ class CSConceptLookup(CSConcept):
     name: str
 
 
+def traverse_concepts(
+    s: Sequence[C],
+) -> Generator[C, None, None]:
+    for c in s:
+        yield c
+        if len(c.concept) > 0:
+            yield from traverse_concepts(c.concept)
+
+
 class CodeSystem(DomainResource):
     resourceType = Field("CodeSystem", const=True)
     url: Optional[AnyUrl]
@@ -131,7 +140,7 @@ class CodeSystem(DomainResource):
         assert (
             code is not None or coding is not None
         ), "At least a code or coding is needed to lookup."
-        for concept in self.concept:
+        for concept in traverse_concepts(self.concept):
 
             if (concept.code == code) or (
                 coding
@@ -155,6 +164,9 @@ class CodeSystem(DomainResource):
         raise ValueError(
             f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})"
         )
+
+    def __iter__(self):
+        yield from traverse_concepts(self.concept)
 
     def __getitem__(self, key: Code | Coding) -> CSConceptLookup:
         if isinstance(key, (Code, str)):
