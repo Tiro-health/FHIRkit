@@ -7,3 +7,4 @@ build
 dist
 FHIRkit.egg-info
 .VSCodeCounter
+.DS_Store
