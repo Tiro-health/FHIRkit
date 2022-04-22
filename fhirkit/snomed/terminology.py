@@ -14,11 +14,6 @@ from fhirkit.elements import CodeableConcept, Coding
 from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
 
 
-# DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
-# DEFAULT_SCT_URL = "https://r4.ontoserver.csiro.au/fhir"
-# TIRO_SCT_URL = "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
-
-
 class ExpandedValueset(ValueSet):
     expansion: VSExpansion
 
