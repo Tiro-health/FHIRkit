@@ -1,19 +1,10 @@
 from __future__ import annotations
 from datetime import datetime
 import itertools
-from typing import (
-    Any,
-    ClassVar,
-    ForwardRef,
-    Literal,
-    Optional,
-    Sequence,
-    Set,
-    Union,
-)
-from pydantic import AnyUrl, BaseModel, Field, validator
-from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from typing import Any, ClassVar, ForwardRef, Literal, Optional, Sequence, Set, Union
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl, validator
 from fhirkit.data_types import Code, XHTML
+from fhirkit.ChoiceTypeMixin import validate_choice_types, ChoiceTypeMixinBase
 
 
 class Element(BaseModel):
@@ -44,8 +35,7 @@ class AbstractCoding(Element):
 
     display: Optional[str]
     code: str
-    system: str
-    version: Optional[str]
+    system: Optional[Union[HttpUrl, str]]
 
     class Config:
         allow_mutation = False
