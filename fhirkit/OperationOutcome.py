@@ -1,8 +1,8 @@
 from typing import Literal, Optional, Sequence
 from pydantic import Field
-from tiro_fhir.Resource import DomainResource
-from tiro_fhir.elements import BackboneElement, CodeableConcept
-from tiro_fhir.data_types import Code
+from fhirkit.Resource import DomainResource
+from fhirkit.elements import BackboneElement, CodeableConcept
+from fhirkit.data_types import Code
 
 
 class OperationOutcomeIssue(BackboneElement):

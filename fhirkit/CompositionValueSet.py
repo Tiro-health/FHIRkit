@@ -1,4 +1,4 @@
-from tiro_fhir.ValueSet import VSCompose, ValueSet
+from fhirkit.ValueSet import VSCompose, ValueSet
 
 
 class CompositionValueSet(ValueSet):

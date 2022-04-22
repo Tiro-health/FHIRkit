@@ -2,9 +2,9 @@ import abc
 from datetime import date, datetime
 from typing import Any, Iterable, Iterator, List, Literal, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
-from tiro_fhir.data_types import dateTime
-from tiro_fhir.elements import BackboneElement, CodeableConcept, Coding, UsageContext
-from tiro_fhir.Resource import Resource
+from fhirkit.data_types import dateTime
+from fhirkit.elements import BackboneElement, CodeableConcept, Coding, UsageContext
+from fhirkit.Resource import Resource
 
 
 class VSDesignation(BaseModel):

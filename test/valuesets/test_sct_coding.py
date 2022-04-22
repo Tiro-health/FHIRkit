@@ -1,4 +1,4 @@
-from tiro_fhir import SCTCoding
+from fhirkit import SCTCoding
 
 
 def test_descendants_rarp():

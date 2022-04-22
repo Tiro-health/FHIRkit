@@ -1,5 +1,5 @@
 from typing import Optional, Sequence
-from tiro_fhir.elements import ContactPoint, Element
+from fhirkit.elements import ContactPoint, Element
 
 
 class ContactDetail(Element):

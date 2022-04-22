@@ -1,9 +1,9 @@
 from typing import List, Literal, Optional, Tuple, Union
 from pydantic import HttpUrl, PrivateAttr, root_validator
-from tiro_fhir.ValueSet import VSCompose, VSExpansion, VSFilter, VSInclude, ValueSet
-from tiro_fhir.elements import CodeableConcept, Coding
-from tiro_fhir.snomed.consts import SCT_URI
-from tiro_fhir.snomed.terminology import SCTFHIRTerminologyServer
+from fhirkit.ValueSet import VSCompose, VSExpansion, VSFilter, VSInclude, ValueSet
+from fhirkit.elements import CodeableConcept, Coding
+from fhirkit.snomed.consts import SCT_URI
+from fhirkit.snomed.terminology import SCTFHIRTerminologyServer
 
 
 class SCTDescendantsFilter(VSFilter):

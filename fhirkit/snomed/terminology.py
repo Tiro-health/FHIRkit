@@ -6,12 +6,12 @@ from typing import ClassVar, List, Optional, Union
 from webbrowser import Opera
 import requests
 from pydantic import HttpUrl, ValidationError, parse_obj_as, parse_raw_as
-from tiro_fhir.Parameter import Parameters
-from tiro_fhir.Server import AbstractFHIRTerminologyServer
-from tiro_fhir.ValueSet import VSCodingWithDesignation, VSExpansion, ValueSet
-from tiro_fhir.data_types import Code
-from tiro_fhir.elements import CodeableConcept, Coding
-from tiro_fhir.OperationOutcome import OperationOutcome, OperationOutcomeException
+from fhirkit.Parameter import Parameters
+from fhirkit.Server import AbstractFHIRTerminologyServer
+from fhirkit.ValueSet import VSCodingWithDesignation, VSExpansion, ValueSet
+from fhirkit.data_types import Code
+from fhirkit.elements import CodeableConcept, Coding
+from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
 
 
 # DEFAULT_SCT_URL = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
@@ -28,7 +28,9 @@ VSExpansionResponse = Union[ExpandedValueset, OperationOutcome]
 
 
 class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
-    DEFAULT_URL: ClassVar[str] = "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
+    DEFAULT_URL: ClassVar[
+        str
+    ] = "https://browser.ihtsdotools.org/snowstorm/snomed-ct/fhir"
     DEFAULT_SERVER: ClassVar[Optional[SCTFHIRTerminologyServer]] = None
     RETRY_COUNT: int = 3
     RETRY_PAUSE: int = 10

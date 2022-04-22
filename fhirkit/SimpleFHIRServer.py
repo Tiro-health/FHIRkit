@@ -1,8 +1,8 @@
 from typing import Generic, Optional, Sequence, TypeVar, Union
 
 from pydantic import HttpUrl
-from tiro_fhir.Server import AbstractFHIRServer, ResourceNoteFoundError
-from tiro_fhir.Resource import Resource
+from fhirkit.Server import AbstractFHIRServer, ResourceNoteFoundError
+from fhirkit.Resource import Resource
 
 R = TypeVar("R", bound=Resource)
 

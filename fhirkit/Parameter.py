@@ -7,10 +7,10 @@ from pydantic import (
     StrictBool,
     validator,
 )
-from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
-from tiro_fhir.Resource import Resource
-from tiro_fhir.data_types import Code
-from tiro_fhir.elements import BackboneElement, CodeableConcept, Coding
+from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from fhirkit.Resource import Resource
+from fhirkit.data_types import Code
+from fhirkit.elements import BackboneElement, CodeableConcept, Coding
 
 
 class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):

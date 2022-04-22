@@ -1,8 +1,8 @@
 from typing import Optional
 from pydantic import Field, HttpUrl
-from tiro_fhir.Server import AbstractFHIRTerminologyServer
-from tiro_fhir.elements import CodeableConcept, Coding
-from tiro_fhir.ValueSet import ValueSet
+from fhirkit.Server import AbstractFHIRTerminologyServer
+from fhirkit.elements import CodeableConcept, Coding
+from fhirkit.ValueSet import ValueSet
 from .ValueSet import (
     SCTDescendantsFilter,
     SCTImplicitCompose,

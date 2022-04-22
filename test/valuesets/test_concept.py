@@ -1,5 +1,5 @@
-from tiro_fhir import CodeableConcept
-from tiro_fhir import SCTCoding
+from fhirkit import CodeableConcept
+from fhirkit import SCTCoding
 
 
 def test_equality_codeable_concepts_and_coding():

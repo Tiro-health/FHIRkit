@@ -12,8 +12,8 @@ from typing import (
     Union,
 )
 from pydantic import AnyUrl, BaseModel, Field, validator
-from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
-from tiro_fhir.data_types import Code, XHTML
+from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from fhirkit.data_types import Code, XHTML
 
 
 class Element(BaseModel):

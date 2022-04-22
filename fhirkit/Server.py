@@ -1,8 +1,8 @@
 import abc
 from typing import Optional, Tuple, Union
 from pydantic.error_wrappers import ValidationError
-from tiro_fhir.data_types import Code
-from tiro_fhir.elements import CodeableConcept, Coding
+from fhirkit.data_types import Code
+from fhirkit.elements import CodeableConcept, Coding
 from pydantic import HttpUrl, parse_obj_as
 from abc import ABC
 

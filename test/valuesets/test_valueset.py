@@ -1,4 +1,4 @@
-from tiro_fhir import ValueSet, SCTCoding, SimpleValueSet, CodeableConcept
+from fhirkit import ValueSet, SCTCoding, SimpleValueSet, CodeableConcept
 
 
 def test_valueset_iterator():

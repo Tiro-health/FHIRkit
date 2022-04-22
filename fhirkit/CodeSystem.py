@@ -1,17 +1,18 @@
 from __future__ import annotations
-from typing import Any, ClassVar, Literal, Optional, Sequence, Set, Union
+from email.generator import Generator
+from typing import Any, ClassVar, Literal, Optional, Sequence, Set, TypeVar, Union
 from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
-from tiro_fhir.Resource import DomainResource
-from tiro_fhir.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
-from tiro_fhir.elements import (
+from fhirkit.Resource import DomainResource
+from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from fhirkit.elements import (
     BackboneElement,
     CodeableConcept,
     Coding,
     Identifier,
     UsageContext,
 )
-from tiro_fhir.data_types import Code, dateTime
-from tiro_fhir.metadata_types import ContactDetail
+from fhirkit.data_types import Code, dateTime
+from fhirkit.metadata_types import ContactDetail
 
 
 class CodeLookupError(KeyError):
@@ -86,6 +87,9 @@ class CSConcept(BackboneElement):
 
 class CSConceptLookup(CSConcept):
     name: str
+
+
+C = TypeVar("C", bound=CSConcept)
 
 
 def traverse_concepts(

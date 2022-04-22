@@ -1,5 +1,5 @@
-from tiro_fhir.snomed.ValueSet import SCTImplicitValueSet
-from tiro_fhir.snomed.terminology import SCTFHIRTerminologyServer
+from fhirkit.snomed.ValueSet import SCTImplicitValueSet
+from fhirkit.snomed.terminology import SCTFHIRTerminologyServer
 
 
 def test_change_default_url():

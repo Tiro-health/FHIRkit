@@ -13,10 +13,10 @@ from typing import (
     Generator,
 )
 from pydantic import AnyUrl, BaseModel, HttpUrl, Field, PrivateAttr
-from tiro_fhir.Server import AbstractFHIRTerminologyServer
-from tiro_fhir.data_types import Code, Id, Instant
-from tiro_fhir.elements import BackboneElement, Element, Narrative, Extension, Coding
-from tiro_fhir.ChoiceTypeMixin import AbstractChoiceTypeMixin
+from fhirkit.Server import AbstractFHIRTerminologyServer
+from fhirkit.data_types import Code, Id, Instant
+from fhirkit.elements import BackboneElement, Element, Narrative, Extension, Coding
+from fhirkit.ChoiceTypeMixin import AbstractChoiceTypeMixin
 
 
 class Meta(BaseModel):

@@ -8,10 +8,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 setup(
-    name="tiro-fhir",
-    version="0.0.1",
-    description="Utils to handle FHIR Terminology Resources more efficiently",
-    long_description=open("README.md").read() + "\n\n" + open("CHANGELOG.md").read(),
+    name="FHIRkit",
+    version="0.0.4",
+    description="Toolkit to handle FHIR Resources in a more efficient, pythonic way.",
+    long_description=open("README.md").read(),
     url="",
     author="",
     author_email="",
@@ -19,4 +19,5 @@ setup(
     classifiers=classifiers,
     keywords="",
     packages=find_packages(),
+    install_requires=["pydantic", "requests"],
 )

@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import ClassVar, Dict, Literal, Optional, Sequence, Set, Tuple, Union
 
 from pydantic import BaseModel, Field, PrivateAttr, ValidationError, validator
-from tiro_fhir.ChoiceTypeMixin import (
+from fhirkit.ChoiceTypeMixin import (
     AbstractChoiceTypeMixin,
     ChoiceTypeMixinBase,
     validate_choice_types,
 )
-from tiro_fhir.Resource import DomainResource
-from tiro_fhir.data_types import Code, dateTime
-from tiro_fhir.elements import (
+from fhirkit.Resource import DomainResource
+from fhirkit.data_types import Code, dateTime
+from fhirkit.elements import (
     CodeableConcept,
     Identifier,
     Period,
