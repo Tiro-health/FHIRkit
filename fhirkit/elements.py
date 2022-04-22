@@ -36,6 +36,7 @@ class AbstractCoding(Element):
     display: Optional[str]
     code: str
     system: Optional[Union[HttpUrl, str]]
+    version: Optional[str]
 
     class Config:
         allow_mutation = False
