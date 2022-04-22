@@ -1,8 +1,8 @@
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, Field, ValidationError, validator
-from tiro_fhir.Resource import DomainResource
-from tiro_fhir.elements import CodeableConcept, Identifier, Period, Reference
-from tiro_fhir.data_types import dateTime
+from fhirkit.Resource import DomainResource
+from fhirkit.elements import CodeableConcept, Identifier, Period, Reference
+from fhirkit.data_types import dateTime
 
 
 class ProcedurePerformedChoiceTypeMixin(BaseModel):
@@ -11,7 +11,7 @@ class ProcedurePerformedChoiceTypeMixin(BaseModel):
     performedString: Optional[str] = Field(None, exclude=True)
     performed: Union[dateTime, Period, str] = Field(None, repr=True)
 
-    @validator("performed", pre=True, always=True)
+    @validator("performed", pre=True, always=True, allow_reuse=True)
     def determine_performed(cls, v, values):
         if v is not None:
             return v

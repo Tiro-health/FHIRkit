@@ -6,14 +6,17 @@ name = "pypi"
 [packages]
 pydantic = "*"
 requests = "*"
-unknown = {editable = true, path = "."}
-pandas = "*"
 
 [dev-packages]
 pytest = "*"
 black = "*"
 mypy = "*"
 ipykernel = "*"
+sphinx = "*"
+autodoc-pydantic = "*"
+pdoc = "*"
+twine = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.9"
