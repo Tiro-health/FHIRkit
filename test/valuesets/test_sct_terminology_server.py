@@ -7,7 +7,7 @@ def test_change_default_url():
         "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
     )
     sct_server = SCTFHIRTerminologyServer()
-    assert sct_server.baseUrl == "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
+    assert sct_server.base_url == "https://snowstorm-aovarw23xa-uc.a.run.app/fhir"
 
 
 def test_subsumption():

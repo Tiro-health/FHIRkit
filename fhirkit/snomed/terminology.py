@@ -35,9 +35,9 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
     RETRY_COUNT: int = 3
     RETRY_PAUSE: int = 10
 
-    def __init__(self, baseUrl: Optional[Union[str, HttpUrl]] = None) -> None:
-        baseUrl = baseUrl or self.DEFAULT_URL
-        self.baseUrl = parse_obj_as(HttpUrl, baseUrl)
+    def __init__(self, base_url: Optional[Union[str, HttpUrl]] = None) -> None:
+        base_url = base_url or self.DEFAULT_URL
+        self._base_url = parse_obj_as(HttpUrl, base_url)
 
     @classmethod
     def default_server(cls):
@@ -51,7 +51,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
         path = resourceType
         if id:
             path += "/" + id
-        req_url = f"{self.baseUrl}/{path}"
+        req_url = f"{self.base_url}/{path}"
         if url:
             req_url = url
         headers = {"Accept": "application/json", "Content-type": "application/json"}
@@ -67,12 +67,12 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
             response = parse_obj_as(Response, raw_response.json())
         except ValidationError:
             raise ConnectionError(
-                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
+                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server"
             )
         except:
             raise RuntimeWarning(
-                "Failed when calling {endpoint} on {baseurl}".format(
-                    endpoint=path, baseurl=self.baseUrl
+                "Failed when calling {endpoint} on {base_url}".format(
+                    endpoint=path, base_url=self.base_url
                 )
             )
 
@@ -93,7 +93,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                 url=url, count=page_size, offset=offset
             )
             query += "&" + urlencode(kwargs) if kwargs else ""
-            req_url = f"{self.baseUrl}/{path}?{query}"
+            req_url = f"{self.base_url}/{path}?{query}"
             headers = {
                 "Accept": "application/json",
             }
@@ -123,12 +123,12 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
 
             except ValidationError:
                 raise ConnectionError(
-                    f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
+                    f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server"
                 )
             except:
                 raise RuntimeWarning(
-                    "Failed when calling {endpoint} on {baseurl}".format(
-                        endpoint=path, baseurl=self.baseUrl
+                    "Failed when calling {endpoint} on {base_url}".format(
+                        endpoint=path, base_url=self.base_url
                     )
                 )
             else:
@@ -168,7 +168,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
                 dict(name="codeableConcept", valueCodeableConcept=codeableConcept)
             )
 
-        req_url = f"{self.baseUrl}/{path}"
+        req_url = f"{self.base_url}/{path}"
         headersList = {"Accept": "application/json", "Content-type": "application/json"}
         payload = Parameters(parameter=parameters).json(exclude_none=True)
         try:
@@ -185,12 +185,12 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
             response = parse_obj_as(Response, raw_response.json())
         except ValidationError:
             raise ConnectionError(
-                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.baseUrl} is a valid FHIR-server"
+                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server"
             )
         except:
             raise RuntimeWarning(
-                "Failed when calling {endpoint} on {baseurl}".format(
-                    endpoint=path, baseurl=self.baseUrl
+                "Failed when calling {endpoint} on {base_url}".format(
+                    endpoint=path, base_url=self.base_url
                 )
             )
 

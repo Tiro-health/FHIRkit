@@ -16,8 +16,8 @@ class ResourceNoteFoundError(Exception):
 
 
 class AbstractFHIRServer(ABC):
-    def __init__(self, baseUrl: Union[str, HttpUrl]) -> None:
-        self._base_url = parse_obj_as(HttpUrl, baseUrl)
+    def __init__(self, base_url: Union[str, HttpUrl]) -> None:
+        self._base_url = parse_obj_as(HttpUrl, base_url)
 
     @property
     def base_url(self):

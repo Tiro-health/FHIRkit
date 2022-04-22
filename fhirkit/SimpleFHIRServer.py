@@ -8,9 +8,9 @@ R = TypeVar("R", bound=Resource)
 
 
 class SimpleFHIRServer(Generic[R], AbstractFHIRServer):
-    def __init__(self, resources: Sequence[R], baseUrl: Union[str, HttpUrl]) -> None:
+    def __init__(self, resources: Sequence[R], base_url: Union[str, HttpUrl]) -> None:
         self._resources = resources
-        super().__init__(baseUrl)
+        super().__init__(base_url)
 
     def get_resource(
         self,
