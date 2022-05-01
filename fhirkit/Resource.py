@@ -142,18 +142,18 @@ class DomainResource(Resource):
 
 
 class CanonicalResource(DomainResource):
-    url: Optional[AnyUrl]
+    url: Optional[AnyUrl] = None
     identifier: Sequence[Identifier] = []
-    version: Optional[str]
-    name: Optional[str]
-    title: Optional[str]
+    version: Optional[str] = None
+    name: Optional[str] = None
+    title: Optional[str] = None
     status: Code
-    experimental: Optional[bool]
-    date: Optional[dateTime]
-    publisher: Optional[str]
+    experimental: Optional[bool] = None
+    date: Optional[dateTime] = None
+    publisher: Optional[str] = None
     contact: Sequence[ContactDetail] = []
-    description: Optional[str]
+    description: Optional[str] = None
     useContext: Sequence[UsageContext] = []
     jurisdiction: Sequence[CodeableConcept] = []
-    purpose: Optional[str]
-    copyright: Optional[str]
+    purpose: Optional[str] = None
+    copyright: Optional[str] = None
