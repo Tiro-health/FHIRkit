@@ -159,7 +159,7 @@ class ContactPoint(Element):
     ] = None
     value: Optional[str] = None
     use: Optional[Literal["home", "work", "temp", "old", "mobile"]] = None
-    period: Period
+    period: Optional[Period]
 
 
 class ContactDetail(Element):

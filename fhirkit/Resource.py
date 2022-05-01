@@ -134,6 +134,12 @@ class DomainResource(Resource):
     extension: Sequence[Extension] = Field([], repr=False)
     modifierExtension: Sequence[Extension] = Field([], repr=False)
 
+    def _repr_html_(self):
+        if self.text:
+            return self.text.div
+        else:
+            return repr(self)
+
 
 class CanonicalResource(DomainResource):
     url: Optional[AnyUrl]
