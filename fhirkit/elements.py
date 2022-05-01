@@ -32,6 +32,7 @@ class BackboneElement(Element):
     modifierExtension: Sequence[Extension] = Field([], repr=False)
 
 
+Narrative.update_forward_refs()
 BackboneElement.update_forward_refs()
 Element.update_forward_refs()
 

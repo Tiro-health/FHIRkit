@@ -175,6 +175,8 @@ class ValueSet(CanonicalResource):
 
 
 class SimpleValueSet(ValueSet):
+    status = "active"
+
     def __init__(self, *args: VSCodingWithDesignation, **kwargs):
         if len(args) > 0:
 

@@ -1,4 +1,9 @@
 from __future__ import annotations
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 from typing import (
     AbstractSet,
     Any,
@@ -147,7 +152,7 @@ class CanonicalResource(DomainResource):
     version: Optional[str] = None
     name: Optional[str] = None
     title: Optional[str] = None
-    status: Code
+    status: Literal["draft", "active", "retired", "unknown"]
     experimental: Optional[bool] = None
     date: Optional[dateTime] = None
     publisher: Optional[str] = None
