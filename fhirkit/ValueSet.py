@@ -175,7 +175,7 @@ class ValueSet(CanonicalResource):
 
 
 class SimpleValueSet(ValueSet):
-    status = "active"
+    status: Literal["active"] = Field("active", const=True)
 
     def __init__(self, *args: VSCodingWithDesignation, **kwargs):
         if len(args) > 0:
