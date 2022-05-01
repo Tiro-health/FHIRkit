@@ -188,6 +188,7 @@ class SimpleValueSet(ValueSet):
                     contains=[c.dict() for c in args], total=len(args)
                 ),
                 text=Narrative(
+                    status="generated",
                     div="""
                 <div>
                     <style scoped>
@@ -222,7 +223,7 @@ class SimpleValueSet(ValueSet):
                     + """
                         </tbody>
                     </table>
-                </div>"""
+                </div>""",
                 ),
                 **kwargs,
             )
