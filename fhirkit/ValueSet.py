@@ -8,7 +8,13 @@ except ImportError:
 from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from fhirkit.data_types import dateTime
-from fhirkit.elements import BackboneElement, CodeableConcept, Coding, UsageContext
+from fhirkit.elements import (
+    BackboneElement,
+    CodeableConcept,
+    Coding,
+    Narrative,
+    UsageContext,
+)
 from fhirkit.Resource import CanonicalResource, Resource
 
 
@@ -80,13 +86,16 @@ class ValueSet(CanonicalResource):
 
     def __iter__(self):
         if not self.has_expanded:
-            self.expand()
+            self._expand()
         for coding in self.expansion.contains:
             yield coding
 
     def __len__(self):
         if not self.has_expanded:
-            self.expand()
+            self._expand()
+            assert (
+                self.has_expanded
+            ), "ValueSet has no expansion even after running `self.expand()`."
         return self.expansion.total or len(self.expansion.contains)
 
     def __contains__(self, item: Union[Coding, CodeableConcept]) -> bool:
@@ -98,7 +107,28 @@ class ValueSet(CanonicalResource):
     def has_expanded(self):
         return self.expansion is not None
 
-    def expand(self) -> Iterable[VSCodingWithDesignation]:
+    def _expand(self):
+        """Private wrapper method for `self.expand`"""
+        assert (
+            self.has_expanded
+        ), "ValueSet has no expansion even after running `self.expand()`."
+
+    def expand(self):
+        """Override this method to implement expansion logic.
+        This method should fill ValueSet.expansion.contains with concepts.
+
+        Implementing this method enables you to iterate over the ValueSet in a for-loop.
+        ```python
+        class MyCustomValueSet(ValueSet)
+
+            def expand(self):
+                # some expansion logic
+
+        vs_example = MyCustomValueSet()
+        for coding in vs:
+            print(coding)
+        "
+        """
         raise NotImplementedError()
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
@@ -116,11 +146,13 @@ class ValueSet(CanonicalResource):
         if extend_compose:
             self.compose.include.append(VSInclude(system=code.system, concept=[code]))
 
-        if self.expansion is None and init_expansion_if_none:
+        if not self.has_expanded and init_expansion_if_none:
             self.init_expansion()
 
-        if self.expansion:
-            self.expansion.contains.append(code)
+        assert (
+            self.expansion is not None
+        ), "`self.expansion` is None after initialisation with `self.init_expansion`"
+        self.expansion.contains.append(code)
 
     def extend(
         self,
@@ -134,11 +166,12 @@ class ValueSet(CanonicalResource):
                 VSInclude(system=first_code.system, concept=list(codes))
             )
 
-        if self.expansion is None and init_expansion_if_none:
+        if self.has_expanded and init_expansion_if_none:
             self.init_expansion()
-
-        if self.expansion:
-            self.expansion.contains.extend(codes)
+        assert (
+            self.expansion is not None
+        ), "`self.expansion` is None after initialisation with `self.init_expansion`"
+        self.expansion.contains.extend(codes)
 
 
 class SimpleValueSet(ValueSet):
@@ -152,7 +185,44 @@ class SimpleValueSet(ValueSet):
                 expansion=VSExpansion(
                     contains=[c.dict() for c in args], total=len(args)
                 ),
-                **kwargs
+                text=Narrative(
+                    div="""
+                <div>
+                    <style scoped>
+                        .dataframe tbody tr th:only-of-type {
+                            vertical-align: middle;
+                        }
+
+                        .dataframe tbody tr th {
+                            vertical-align: top;
+                        }
+
+                        .dataframe thead th {
+                            text-align: right;
+                        }
+                    </style>
+                    <table border="1" class="dataframe">
+                        <thead>
+                            <tr style="text-align: right;">
+                            <th>code</th>
+                            <th>display</th>
+                            <th>system</th>
+                            <th>version</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+                    + "".join(
+                        [
+                            f"<tr><th>{c.code}</th><td>{c.display}</td><td>{c.system}</td><td>{c.version}</td></tr>"
+                            for c in args
+                        ]
+                    )
+                    + """
+                        </tbody>
+                    </table>
+                </div>"""
+                ),
+                **kwargs,
             )
         else:
             super().__init__(**kwargs)
