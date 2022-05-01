@@ -1,4 +1,8 @@
-from typing import Literal, Optional, Union
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+from typing import Optional, Union
 from pydantic import BaseModel, Field, ValidationError, validator
 from fhirkit.Resource import DomainResource
 from fhirkit.elements import CodeableConcept, Identifier, Period, Reference

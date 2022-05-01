@@ -1,9 +1,13 @@
-from datetime import datetime
-from typing import ClassVar, Dict, Literal, Optional, Sequence, Set, Tuple, Union
+from typing import ClassVar, Optional, Sequence, Set, Union
 
-from pydantic import BaseModel, Field, PrivateAttr, ValidationError, validator
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+
+from pydantic import Field, validator
 from fhirkit.ChoiceTypeMixin import (
-    AbstractChoiceTypeMixin,
     ChoiceTypeMixinBase,
     validate_choice_types,
 )

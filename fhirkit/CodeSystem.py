@@ -1,6 +1,12 @@
 from __future__ import annotations
 from email.generator import Generator
-from typing import Any, ClassVar, Literal, Optional, Sequence, Set, TypeVar, Union
+from typing import Any, ClassVar, Optional, Sequence, Set, TypeVar, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
 from fhirkit.Resource import DomainResource
 from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types

@@ -1,6 +1,11 @@
 import abc
 from datetime import date, datetime
-from typing import Any, Iterable, Iterator, List, Literal, Optional, Sequence, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from fhirkit.data_types import dateTime
 from fhirkit.elements import BackboneElement, CodeableConcept, Coding, UsageContext

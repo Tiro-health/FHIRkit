@@ -1,7 +1,13 @@
 from __future__ import annotations
 from datetime import datetime
 import itertools
-from typing import Any, ClassVar, ForwardRef, Literal, Optional, Sequence, Set, Union
+from typing import Any, ClassVar, ForwardRef, Optional, Sequence, Set, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, validator
 from fhirkit.data_types import Code, XHTML
 from fhirkit.ChoiceTypeMixin import validate_choice_types, ChoiceTypeMixinBase

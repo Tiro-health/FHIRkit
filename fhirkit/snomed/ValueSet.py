@@ -1,6 +1,11 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 from pydantic import HttpUrl, PrivateAttr, root_validator
-from fhirkit.ValueSet import VSCompose, VSExpansion, VSFilter, VSInclude, ValueSet
+from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
 from fhirkit.elements import CodeableConcept, Coding
 from fhirkit.snomed.consts import SCT_URI
 from fhirkit.snomed.terminology import SCTFHIRTerminologyServer
