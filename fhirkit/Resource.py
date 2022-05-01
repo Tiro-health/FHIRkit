@@ -14,8 +14,18 @@ from typing import (
 )
 from pydantic import AnyUrl, BaseModel, HttpUrl, Field, PrivateAttr
 from fhirkit.Server import AbstractFHIRTerminologyServer
-from fhirkit.data_types import Code, Id, Instant
-from fhirkit.elements import BackboneElement, Element, Narrative, Extension, Coding
+from fhirkit.data_types import Code, Id, Instant, dateTime
+from fhirkit.elements import (
+    BackboneElement,
+    CodeableConcept,
+    ContactDetail,
+    Element,
+    Identifier,
+    Narrative,
+    Extension,
+    Coding,
+    UsageContext,
+)
 from fhirkit.ChoiceTypeMixin import AbstractChoiceTypeMixin
 
 
@@ -123,3 +133,21 @@ class DomainResource(Resource):
     contained: Sequence[Resource] = Field([], repr=False)
     extension: Sequence[Extension] = Field([], repr=False)
     modifierExtension: Sequence[Extension] = Field([], repr=False)
+
+
+class CanonicalResource(DomainResource):
+    url: Optional[AnyUrl]
+    identifier: Sequence[Identifier] = []
+    version: Optional[str]
+    name: Optional[str]
+    title: Optional[str]
+    status: Code
+    experimental: Optional[bool]
+    date: Optional[dateTime]
+    publisher: Optional[str]
+    contact: Sequence[ContactDetail] = []
+    description: Optional[str]
+    useContext: Sequence[UsageContext] = []
+    jurisdiction: Sequence[CodeableConcept] = []
+    purpose: Optional[str]
+    copyright: Optional[str]

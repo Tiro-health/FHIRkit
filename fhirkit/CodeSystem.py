@@ -8,7 +8,7 @@ except ImportError:
     from typing_extensions import Literal
 
 from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
-from fhirkit.Resource import DomainResource
+from fhirkit.Resource import CanonicalResource, DomainResource
 from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
 from fhirkit.elements import (
     BackboneElement,
@@ -107,7 +107,7 @@ def traverse_concepts(
             yield from traverse_concepts(c.concept)
 
 
-class CodeSystem(DomainResource):
+class CodeSystem(CanonicalResource):
     resourceType = Field("CodeSystem", const=True)
     url: Optional[AnyUrl]
     identifier: Sequence[Identifier] = []

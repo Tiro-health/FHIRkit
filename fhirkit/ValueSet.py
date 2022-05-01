@@ -9,7 +9,7 @@ from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 from fhirkit.data_types import dateTime
 from fhirkit.elements import BackboneElement, CodeableConcept, Coding, UsageContext
-from fhirkit.Resource import Resource
+from fhirkit.Resource import CanonicalResource, Resource
 
 
 class VSDesignation(BaseModel):
@@ -70,7 +70,7 @@ class VSExpansion(BaseModel):
     timestamp: dateTime = Field(default_factory=datetime.now)
 
 
-class ValueSet(Resource):
+class ValueSet(CanonicalResource):
     resourceType = Field("ValueSet", const=True)
     url: Optional[AnyUrl]
     name: Optional[str]

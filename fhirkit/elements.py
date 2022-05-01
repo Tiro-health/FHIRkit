@@ -162,6 +162,11 @@ class ContactPoint(Element):
     period: Period
 
 
+class ContactDetail(Element):
+    name: Optional[str]
+    telecom: Sequence[ContactPoint] = []
+
+
 class UsageContextValueChoiceType(ChoiceTypeMixinBase):
     _choice_type_fields: ClassVar[Set[str]] = [
         "valueQuantity",
