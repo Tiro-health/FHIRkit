@@ -4,7 +4,7 @@ Handle FHIR resources in a more efficient, and pythonic way
 
 
 ## Why FHIRKit
-FHIRKit is a wrapper around [Pydantic](https://github.com/samuelcolvin/pydantic) that will help you parse FHIR JSON data and provides you some util functions to display resources 👀 and validate codes in those resources ✅.
+FHIRKit is a wrapper around [Pydantic](https://github.com/samuelcolvin/pydantic) that will help you parse FHIR JSON data. It comes with some utility functions to display resources 👀 and validate codes in those resources ✅.
 
 __The goals of this package in a nutshell:__
 - Parse [`application/fhir+json`](https://build.fhir.org/json.html) content using predefined Pydantic models. These models automatically handle [choice data type](https://www.hl7.org/fhir/formats.html#choice)s (ex. `value[x]`) for you by create an [alias](https://pydantic-docs.helpmanual.io/usage/model_config/#alias-precedence).
