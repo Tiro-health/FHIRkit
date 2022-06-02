@@ -16,7 +16,7 @@ __The goals of this package in a nutshell:__
     vs = target_code.descendants() # create a valueset by retrieving all descendants of a SNOMED-CT code
     obs = Observation.parse_file("my_observation.json")
      
-    assert obs.code in vs, "Observation has an invalid code={obs.code}, please provide a {target_code}"
+    assert obs.code in vs, f"Observation has an invalid code={obs.code}, please provide a {target_code}"
     # 
     # AssertionError
     # Observation has an invalid code="55406008 | Hyperalgesia |", please provide a "298364001 | Finding of head region |"
