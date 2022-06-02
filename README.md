@@ -10,7 +10,7 @@ __The goals of this package in a nutshell:__
 - Parse [`application/fhir+json`](https://build.fhir.org/json.html) content using predefined Pydantic models. These models automatically handle [choice data type](https://www.hl7.org/fhir/formats.html#choice)s (ex. `value[x]`) for you by creating an [alias](https://pydantic-docs.helpmanual.io/usage/model_config/#alias-precedence).
 - Perform operation on `code`, `coding`, `CodeableConcept` elements and `ValueSets` resources in a *pythonic* way.
   
-    After implementing calls to terminology servers over and over again 😥, we realized that actually Python-developers want to code like this:
+    After implementing calls to terminology servers over and over again 😥, we realized that Python-developers want code like this:
     ```python
     target_code = SCTCoding(code="298364001")
     vs = target_code.descendants() # create a valueset by retrieving all descendants of a SNOMED-CT code
