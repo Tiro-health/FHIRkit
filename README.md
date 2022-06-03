@@ -1,5 +1,5 @@
 # FHIRkit
-
+[![PyPI version](https://badge.fury.io/py/FHIRkit.svg)](https://badge.fury.io/py/FHIRkit)
 Handle FHIR resources in a more efficient, and pythonic way
 
 
