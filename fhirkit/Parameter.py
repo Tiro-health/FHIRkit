@@ -1,4 +1,9 @@
-from typing import Any, ClassVar, List, Literal, Optional, Set, Union
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+from typing import Any, ClassVar, List, Optional, Set, Union
 from pydantic import (
     Field,
     HttpUrl,
