@@ -32,15 +32,15 @@ class CSConceptDesignation(BackboneElement):
 
 
 class CSConceptPropertyValueChoiceTypeMixin(ChoiceTypeMixinBase):
-    _choice_type_fields: ClassVar[Set[str]] = [
+    choice_type_fields: ClassVar[Set[str]] = {
         "valueBoolean",
         "valueString",
         "valueCode",
         "valueCoding",
         "valueDateTime",
         "valueDecimal",
-    ]
-    _polymorphic_field: ClassVar[Set[str]] = "value"
+    }
+    polymorphic_fields: ClassVar[Set[str]] = {"value"}
     valueBoolean: Optional[StrictBool] = Field(None)
     valueString: Optional[StrictStr] = Field(None)
     valueCode: Optional[Code] = Field(None)
@@ -51,9 +51,22 @@ class CSConceptPropertyValueChoiceTypeMixin(ChoiceTypeMixinBase):
         None, exclude=True
     )
 
-    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
-        validate_choice_types
-    )
+    @validator("value", pre=True, always=True, allow_reuse=True)
+    def validate_value(cls, v, values):
+        return validate_choice_types(
+            cls,
+            v,
+            values,
+            {
+                "valueBoolean",
+                "valueString",
+                "valueCode",
+                "valueCoding",
+                "valueDateTime",
+                "valueDecimal",
+            },
+            "value",
+        )
 
     def __str__(self) -> str:
         return str(self.value)

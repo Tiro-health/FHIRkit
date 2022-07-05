@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from pydantic import constr
 
 
@@ -9,3 +9,4 @@ Instant = constr(
 )
 XHTML = constr()
 dateTime = datetime
+URI = constr(regex="\S*")

@@ -19,5 +19,5 @@ setup(
     classifiers=classifiers,
     keywords="",
     packages=find_packages(),
-    install_requires=["pydantic", "requests"],
+    install_requires=["pydantic", "requests", "tqdm"],
 )

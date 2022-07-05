@@ -1,5 +1,6 @@
 import abc
 from datetime import date, datetime
+from enum import auto
 
 try:
     from typing import Literal
@@ -7,7 +8,7 @@ except ImportError:
     from typing_extensions import Literal
 from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl
-from fhirkit.data_types import dateTime
+from fhirkit.data_types import URI, dateTime
 from fhirkit.elements import (
     BackboneElement,
     CodeableConcept,
@@ -72,13 +73,13 @@ class VSExpansion(BaseModel):
     offset: Optional[int]
     total: Optional[int]
     contains: List[VSCodingWithDesignation] = []
-    identifier: Optional[AnyUrl] = None
+    identifier: Optional[URI] = None
     timestamp: dateTime = Field(default_factory=datetime.now)
 
 
 class ValueSet(CanonicalResource):
-    resourceType = Field("ValueSet", const=True)
-    url: Optional[AnyUrl]
+    resourceType: Literal["ValueSet"] = Field("ValueSet", const=True)
+    url: Optional[URI]
     name: Optional[str]
     compose: Optional[VSCompose]
     expansion: Optional[VSExpansion]
@@ -158,7 +159,7 @@ class ValueSet(CanonicalResource):
         self,
         codes: Iterable[VSCodingWithDesignation],
         extend_compose: bool = True,
-        init_expansion_if_none: bool = True,
+        auto_init_expansion: bool = True,
     ):
         if extend_compose:
             first_code, *_ = iter(codes)
@@ -166,7 +167,7 @@ class ValueSet(CanonicalResource):
                 VSInclude(system=first_code.system, concept=list(codes))
             )
 
-        if self.has_expanded and init_expansion_if_none:
+        if not self.has_expanded and auto_init_expansion:
             self.init_expansion()
         assert (
             self.expansion is not None

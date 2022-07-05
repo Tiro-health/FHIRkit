@@ -26,6 +26,7 @@ class SCTCoding(Coding):
     def descendants(self):
         return SCTImplicitValueSet(
             url=f"{self.system}?fhir_vs=isa/{self.code}",
+            status="active",
             compose=SCTImplicitCompose(
                 include=[
                     SCTImplicitInclude(

@@ -4,11 +4,14 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from pydantic import HttpUrl, PrivateAttr, root_validator
-from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
-from fhirkit.elements import CodeableConcept, Coding
+from pydantic import HttpUrl, PrivateAttr, parse_obj_as, root_validator
+from fhirkit.ValueSet import VSCompose, VSExpansion, VSFilter, VSInclude, ValueSet
+from fhirkit.elements import CodeableConcept, Coding, Narrative
 from fhirkit.snomed.consts import SCT_URI
-from fhirkit.snomed.terminology import SCTFHIRTerminologyServer
+from fhirkit.snomed.terminology import (
+    SCTFHIRTerminologyServer,
+    get_default_terminology_server,
+)
 
 
 class SCTDescendantsFilter(VSFilter):
@@ -35,8 +38,9 @@ class SCTImplicitCompose(VSCompose):
 
 class SCTImplicitValueSet(ValueSet):
     _fhir_server: SCTFHIRTerminologyServer = PrivateAttr(
-        SCTFHIRTerminologyServer.default_server()
+        default_factory=get_default_terminology_server
     )
+    status: Literal["draft", "active", "retired", "unknown"] = "active"
     url: Optional[Union[HttpUrl, str]]
     compose: Optional[SCTImplicitCompose]
 
@@ -80,8 +84,52 @@ class SCTImplicitValueSet(ValueSet):
     def expand(self, **kwargs):
         self.ensure_fhir_server()
         url = self.equivalent_url()
+        self.init_expansion()
         for expanded_vs in self._fhir_server.valueset_expand(url, **kwargs):
             self.extend(expanded_vs.expansion.contains, extend_compose=False)
+
+        self.build_narrative()
+
+    def build_narrative(self):
+        self.text = Narrative(
+            status="generated",
+            div="""
+                <div>
+                    <style scoped>
+                        .dataframe tbody tr th:only-of-type {
+                            vertical-align: middle;
+                        }
+
+                        .dataframe tbody tr th {
+                            vertical-align: top;
+                        }
+
+                        .dataframe thead th {
+                            text-align: right;
+                        }
+                    </style>
+                    <table border="1" class="dataframe">
+                        <thead>
+                            <tr style="text-align: right;">
+                            <th>code</th>
+                            <th>display</th>
+                            <th>system</th>
+                            <th>version</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+            + "".join(
+                [
+                    f"<tr><th>{c.code}</th><td>{c.display}</td><td>{c.system}</td><td>{c.version}</td></tr>"
+                    for c in self
+                ]
+            )
+            + """
+                        </tbody>
+                    </table>
+                </div>
+            """,
+        )
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         self.ensure_fhir_server()
@@ -89,6 +137,11 @@ class SCTImplicitValueSet(ValueSet):
         assert isinstance(
             code, (Coding, CodeableConcept)
         ), "code should be a Coding or CodeableConcept in order to be able to validate it against a ValueSet"
+        if self.has_expanded:
+            for member_code in self:
+                if code == member_code:
+                    return True
+            return False
         if isinstance(code, Coding):
             response = self._fhir_server.valueset_validate_code(url, coding=code)
         else:

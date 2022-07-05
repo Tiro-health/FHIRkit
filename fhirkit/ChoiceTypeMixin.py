@@ -128,50 +128,35 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
 
 
 class ChoiceTypeMixinBase(AbstractChoiceTypeMixin):
-    @property
-    @abc.abstractmethod
-    def _choice_type_fields(self) -> Set[str]:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def _polymorphic_field(self) -> Set[str]:
-        pass
-
-    @property
-    def choice_type_fields(self) -> Set[str]:
-        fields = super().choice_type_fields.union(
-            [
-                f
-                for f in self.choice_type_fields
-                if hasattr(self, f) and getattr(self, f) is not None
-            ]
-        )
-        return fields
-
-    @property
-    def polymorphic_fields(self) -> Set[str]:
-        fields = super().polymorphic_fields.union([self._polymorphic_field])
-        return fields
+    pass
 
 
-@validator("")
-def validate_choice_types(cls, v, values):
+def validate_choice_types(
+    cls, v, values, choice_types: Set[str], polymorphic_field: str
+):
     if v is not None:
         return v
 
     non_null_values = list(
         filter(
-            lambda t: t[0] in cls._choice_type_fields and t[1] is not None,
+            lambda t: t[0] in choice_types and t[1] is not None,
             values.items(),
         )
     )
     if len(non_null_values) == 0:
-        raise ValidationError(
-            f"{cls.__class__.__name__}.{cls._polymorphic_field}[x] can not be None."
-        )
+        pass
+        # candidate_choice_types = [
+        # f
+        # for f in values.keys()
+        # if f.startswith(polymorphic_field) and values[f] is not None
+        # ]
+        # raise ValueError(
+        #    f"{cls.__class__.__name__}.{polymorphic_field}[x] can not be None. Maybe one if these fields is not supported yet: {str(candidate_choice_types)}"
+        #    ""
+        # )
+        return
     elif len(non_null_values) > 1:
-        raise ValidationError(
-            f"{cls.__class__.__name__}.{cls._polymorphic_field}[x] can only have one value."
+        raise ValueError(
+            f"{cls.__class__.__name__}.{polymorphic_field}[x] can only have one value."
         )
     return non_null_values[0][1]

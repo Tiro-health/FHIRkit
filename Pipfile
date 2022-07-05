@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pydantic = "*"
 requests = "*"
+tqdm = "*"
 
 [dev-packages]
 pytest = "*"

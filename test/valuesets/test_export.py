@@ -41,7 +41,7 @@ def test_to_dict_from_choice_type():
             ),
         ],
     )
-    record = obs.dict()
+    record = obs.dict(exclude_none=True, exclude_polymorphic=True)
     assert "code" in record
     assert "effective" not in record
     assert "effectiveDateTime" in record
@@ -69,7 +69,7 @@ def test_to_dict_from_poly_type():
             ),
         ],
     )
-    record = obs.dict()
+    record = obs.dict(exclude_none=True)
     assert "code" in record
     assert "effective" not in record
     assert "effectiveDateTime" in record

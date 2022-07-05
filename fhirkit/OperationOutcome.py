@@ -25,7 +25,7 @@ class OperationOutcomeIssue(BackboneElement):
 
 
 class OperationOutcome(DomainResource):
-    resourceType = Field("OperationOutcome", const=True)
+    resourceType: Literal["OperationOutcome"] = Field("OperationOutcome", const=True)
     issue: Sequence[OperationOutcomeIssue] = []
 
     def __str__(self) -> str:

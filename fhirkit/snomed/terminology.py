@@ -2,10 +2,16 @@ from __future__ import annotations
 import logging
 from urllib.parse import urlencode
 import time
-from typing import ClassVar, List, Optional, Union
+from typing import ClassVar, List, Literal, Optional, Union
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
 from webbrowser import Opera
 import requests
-from pydantic import HttpUrl, ValidationError, parse_obj_as, parse_raw_as
+from pydantic import Field, HttpUrl, ValidationError, parse_obj_as, parse_raw_as
 from fhirkit.Parameter import Parameters
 from fhirkit.Server import AbstractFHIRTerminologyServer
 from fhirkit.ValueSet import VSCodingWithDesignation, VSExpansion, ValueSet
@@ -15,11 +21,16 @@ from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
 
 
 class ExpandedValueset(ValueSet):
+    status: Literal["active"] = Field("active")
     expansion: VSExpansion
 
 
-Response = Union[Parameters, OperationOutcome]
-VSExpansionResponse = Union[ExpandedValueset, OperationOutcome]
+Response = Annotated[
+    Union[Parameters, OperationOutcome], Field(discriminator="resourceType")
+]
+VSExpansionResponse = Annotated[
+    Union[ExpandedValueset, OperationOutcome], Field(discriminator="resourceType")
+]
 
 
 class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
@@ -62,7 +73,7 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
             response = parse_obj_as(Response, raw_response.json())
         except ValidationError:
             raise ConnectionError(
-                f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server"
+                f"Received a response that doesn't resemble a FHIR-resource. Please check if the server at {self.base_url} is a valid FHIR-server"
             )
         except:
             raise RuntimeWarning(
@@ -118,9 +129,10 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
 
             except ValidationError:
                 raise ConnectionError(
-                    f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server"
+                    f"Received a response that doesn't resemble a FHIR-server. Please check if the server at {self.base_url} is a valid FHIR-server. \n Response:\n\n {raw_response.json()}"
                 )
             except:
+                raise
                 raise RuntimeWarning(
                     "Failed when calling {endpoint} on {base_url}".format(
                         endpoint=path, base_url=self.base_url
@@ -193,6 +205,10 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
             raise OperationOutcomeException(response)
 
         return response
+
+
+def get_default_terminology_server():
+    return SCTFHIRTerminologyServer.default_server()
 
 
 DEFAULT_TERMINOLOGY_SERVER = SCTFHIRTerminologyServer()

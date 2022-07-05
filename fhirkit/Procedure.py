@@ -9,6 +9,18 @@ from fhirkit.elements import CodeableConcept, Identifier, Period, Reference
 from fhirkit.data_types import dateTime
 
 
+ProcedureStatus = Literal[
+    "preparation",
+    "in-progress",
+    "not-done",
+    "on-hold",
+    "stopped",
+    "completed",
+    "entered-in-error",
+    "unknown",
+]
+
+
 class ProcedurePerformedChoiceTypeMixin(BaseModel):
     performedDateTime: Optional[dateTime] = Field(None, exclude=True)
     performedPeriod: Optional[Period] = Field(None, exclude=True)
@@ -28,25 +40,16 @@ class ProcedurePerformedChoiceTypeMixin(BaseModel):
             )
         )
         if len(non_null_values) == 0:
-            raise ValidationError("Procedure.performed[x] can not be None.")
+            raise ValueError("Procedure.performed[x] can not be None.")
         elif len(non_null_values) > 1:
-            raise ValidationError("Procedure.performed[x] can only have one value.")
+            raise ValueError("Procedure.performed[x] can only have one value.")
         return non_null_values[0][1]
 
 
 class Procedure(DomainResource, ProcedurePerformedChoiceTypeMixin):
-    resourceType = Field("Procedure", const=True)
+    resourceType: Literal["Procedure"] = Field("Procedure", const=True)
     identifier: Optional[Identifier] = Field(None, repr=True)
-    status: Literal[
-        "preparation",
-        "in-progress",
-        "not-done",
-        "on-hold",
-        "stopped",
-        "completed",
-        "entered-in-error",
-        "unknown",
-    ] = Field("completed", repr=True)
+    status: ProcedureStatus = Field("completed", repr=True)
     statusReason: Optional[CodeableConcept] = Field(None, repr=True)
     category: Optional[CodeableConcept] = Field(None, repr=True)
     code: Optional[CodeableConcept] = Field(None, repr=True)

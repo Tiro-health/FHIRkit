@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, List, Optional, Set, Union
+from typing import Any, ClassVar, List, Literal, Optional, Set, Union
 from pydantic import (
     Field,
     HttpUrl,
@@ -14,7 +14,7 @@ from fhirkit.elements import BackboneElement, CodeableConcept, Coding
 
 
 class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):
-    _choice_type_fields: ClassVar[Set[str]] = [
+    choice_type_fields: ClassVar[Set[str]] = {
         "valueBoolean",
         "valueString",
         "valueCode",
@@ -22,8 +22,8 @@ class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):
         "valueCodeableConcept",
         "valueUri",
         "valueInteger",
-    ]
-    _polymorphic_field: ClassVar[Set[str]] = "value"
+    }
+    polymorphic_fields: ClassVar[Set[str]] = {"value"}
     valueBoolean: Optional[StrictBool] = Field(None)
     valueString: Optional[StrictStr] = Field(None)
     valueCode: Optional[Code] = Field(None)
@@ -35,9 +35,23 @@ class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):
         StrictBool, StrictStr, Code, Coding, CodeableConcept, HttpUrl, StrictInt
     ] = Field(None, exclude=True)
 
-    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
-        validate_choice_types
-    )
+    @validator("value", pre=True, always=True, allow_reuse=True)
+    def validate_value(cls, v, values):
+        return validate_choice_types(
+            cls,
+            v,
+            values,
+            {
+                "valueBoolean",
+                "valueString",
+                "valueCode",
+                "valueCoding",
+                "valueCodeableConcept",
+                "valueUri",
+                "valueInteger",
+            },
+            "value",
+        )
 
 
 class AbstractParameter(BackboneElement):
@@ -73,7 +87,7 @@ class MultiPartParameter(AbstractParameter):
 
 
 class Parameters(Resource):
-    resourceType = Field("Parameters", const=True)
+    resourceType: Literal["Parameters"] = Field("Parameters", const=True)
     parameter: List[Union[ValueParameter, ResourceParameter, MultiPartParameter]]
 
     def __getattribute__(self, __name: str) -> Any:

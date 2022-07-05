@@ -9,7 +9,7 @@ except ImportError:
     from typing_extensions import Literal
 
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, validator
-from fhirkit.data_types import Code, XHTML
+from fhirkit.data_types import URI, Code, XHTML
 from fhirkit.ChoiceTypeMixin import validate_choice_types, ChoiceTypeMixinBase
 
 
@@ -24,7 +24,7 @@ class Narrative(Element):
 
 
 class Extension(Element):
-    url: AnyUrl
+    url: URI
     value: Optional[Any]
 
 
@@ -83,9 +83,9 @@ CodeableConcept = ForwardRef("CodeableConcept")
 class CodeableConcept(BaseModel):
     """FHIR Terminology based model for CodeableConcepts"""
 
-    text: Optional[str]
+    text: Optional[str] = None
     coding: Sequence[Coding] = Field(default=[])
-    active: Optional[bool]
+    active: Optional[bool] = None
 
     def __str__(self) -> str:
         return self.text
@@ -113,15 +113,22 @@ class Period(Element):
 
 class Reference(Element):
     reference: Optional[str]
-    type: Optional[AnyUrl]
+    type: Optional[URI]
     identifier: Optional[Identifier]
     display: Optional[str]
+
+    def __repr__(self) -> str:
+        if self.display is not None:
+            return self.display
+        if self.type is not None and self.reference is not None:
+            return self.type + "/" + self.reference
+        return super().__repr__()
 
 
 class Identifier(Element):
     use: Optional[Code]
     type: Optional[CodeableConcept]
-    system: Optional[AnyUrl]
+    system: Optional[URI]
     value: Optional[str]
     period: Optional[Period]
     assigner: Optional[Reference]
@@ -144,6 +151,12 @@ class Quantity(Element):
     def unit_as_coding(self):
         return Coding(display=self.unit, code=self.code, system=self.system)
 
+    def __repr__(self) -> str:
+        rep = f"{self.value} {self.unit}"
+        if self.comparator:
+            return self.comparator + " " + rep
+        return rep
+
 
 class SimpleQuantity(Quantity):
     comparator: None = Field(..., const=True)
@@ -152,6 +165,11 @@ class SimpleQuantity(Quantity):
 class Range(Element):
     low: Optional[SimpleQuantity]
     high: Optional[SimpleQuantity]
+
+
+class Ratio(Element):
+    numerator: Optional[Quantity] = None
+    denominator: Optional[Quantity] = None
 
 
 class ContactPoint(Element):
@@ -168,24 +186,27 @@ class ContactDetail(Element):
     telecom: Sequence[ContactPoint] = []
 
 
-class UsageContextValueChoiceType(ChoiceTypeMixinBase):
-    _choice_type_fields: ClassVar[Set[str]] = [
+class UsageContext(Element, ChoiceTypeMixinBase):
+    code: Coding
+    choice_type_fields: ClassVar[Set[str]] = {
         "valueQuantity",
         "valueRange",
         "valueCodeableConcept",
         "valueReference",
-    ]
-    _polymorphic_field: ClassVar[Set[str]] = "value"
+    }
+    polymorphic_fields: ClassVar[Set[str]] = {"value"}
     valueQuantity: Optional[Quantity] = None
     valueRange: Optional[Range] = None
     valueCodeableConcept: Optional[CodeableConcept] = None
     valueReference: Optional[Reference] = None
     value: Union[Quantity, Range, CodeableConcept, Reference] = None
 
-    validate_value = validator("value", pre=True, always=True, allow_reuse=True)(
-        validate_choice_types
-    )
-
-
-class UsageContext(Element, UsageContextValueChoiceType):
-    code: Coding
+    @validator("value", pre=True, always=True, allow_reuse=True)
+    def validate_value(cls, value, values):
+        return validate_choice_types(
+            cls,
+            value,
+            values,
+            {"valueQuantity", "valueRange", "valueCodeableConcept", "valueReference"},
+            "value",
+        )

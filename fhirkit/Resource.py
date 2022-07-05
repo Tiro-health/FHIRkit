@@ -17,7 +17,7 @@ from typing import (
     Union,
     Generator,
 )
-from pydantic import AnyUrl, BaseModel, HttpUrl, Field, PrivateAttr
+from pydantic import AnyUrl, BaseModel, Extra, HttpUrl, Field, PrivateAttr
 from fhirkit.Server import AbstractFHIRTerminologyServer
 from fhirkit.data_types import Code, Id, Instant, dateTime
 from fhirkit.elements import (
@@ -29,6 +29,7 @@ from fhirkit.elements import (
     Narrative,
     Extension,
     Coding,
+    Period,
     UsageContext,
 )
 from fhirkit.ChoiceTypeMixin import AbstractChoiceTypeMixin
@@ -114,7 +115,7 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
             for key, value in enumerate(obj):
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
-        elif isinstance(obj, (BackboneElement, Resource, Generator)):
+        elif isinstance(obj, (BackboneElement, Resource, Generator, Period)):
             for key, value in obj:
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
@@ -131,6 +132,7 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        extra = Extra.allow
 
 
 class DomainResource(Resource):

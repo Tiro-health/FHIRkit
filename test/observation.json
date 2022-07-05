@@ -1,0 +1,46 @@
+{
+  "resourceType": "Observation",
+  "id": "e5b2dfc4-c9b3-41e3-a0d6-381ee229824f",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/bodyheight",
+      "http://hl7.org/fhir/StructureDefinition/vitalsigns"
+    ]
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs",
+          "display": "vital-signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "8302-2",
+        "display": "Body Height"
+      }
+    ],
+    "text": "Body Height"
+  },
+  "subject": {
+    "reference": "urn:uuid:fd25b51b-dc2a-4edb-b7c9-2c5d178a0ee7"
+  },
+  "encounter": {
+    "reference": "urn:uuid:608ac6fe-8338-4bbd-8ee2-5747d95178af"
+  },
+  "effectiveDateTime": "1937-05-28T15:58:59-04:00",
+  "issued": "1937-05-28T15:58:59.883-04:00",
+  "valueQuantity": {
+    "value": 52.6,
+    "unit": "cm",
+    "system": "http://unitsofmeasure.org",
+    "code": "cm"
+  }
+}

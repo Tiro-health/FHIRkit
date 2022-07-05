@@ -1,5 +1,3 @@
-from importlib.resources import Resource
-
 from typing import List, Optional
 
 try:
@@ -8,10 +6,10 @@ except ImportError:
     from typing_extensions import Literal
 
 
-from pydantic import Field, HttpUrl
-from elements import Identifier
-from data_types import Instant
-from fhirkit.elements import BackboneElement
+from pydantic import confloat, Field, AnyUrl
+from fhirkit.data_types import URI, Instant
+from fhirkit.elements import BackboneElement, Identifier
+from fhirkit.Resource import Resource
 
 BundleType = Literal[
     "document",
@@ -25,32 +23,38 @@ BundleType = Literal[
     "collection",
 ]
 
+BundleSearchMode = Literal["match", "include", "outcome"]
+
 
 class BundleLink(BackboneElement):
     relation: str
-    url: HttpUrl
+    url: URI
 
 
 class BundleSearch(BackboneElement):
-    # TODO
-    pass
+    mode: Optional[BundleSearchMode]
+    score: confloat(ge=0, le=1)
 
 
 class BundleRequest(BackboneElement):
     method: Literal["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"]
-    url: HttpUrl
+    url: URI
+    ifNoneMatch: Optional[str]
+    ifModifiedSince: Optional[Instant]
+    ifMatch: Optional[str]
+    ifNoneExist: Optional[str]
 
 
 class BundleResponse(BackboneElement):
     status: str
-    location: Optional[HttpUrl]
+    location: Optional[URI]
     etag: Optional[str]
     lastModified: Optional[Instant]
     outcome: Optional[Resource]
 
 
 class BundleEntry(BackboneElement):
-    fullUrl: Optional[HttpUrl]
+    fullUrl: Optional[URI]
     resource: Optional[Resource]
     request: Optional[BundleRequest]
     response: Optional[BundleResponse]
