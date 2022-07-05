@@ -4,8 +4,8 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from pydantic import HttpUrl, PrivateAttr, parse_obj_as, root_validator
-from fhirkit.ValueSet import VSCompose, VSExpansion, VSFilter, VSInclude, ValueSet
+from pydantic import HttpUrl, PrivateAttr, root_validator
+from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
 from fhirkit.elements import CodeableConcept, Coding, Narrative
 from fhirkit.snomed.consts import SCT_URI
 from fhirkit.snomed.terminology import (

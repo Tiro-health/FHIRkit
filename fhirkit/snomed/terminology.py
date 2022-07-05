@@ -1,20 +1,25 @@
 from __future__ import annotations
 import logging
 from urllib.parse import urlencode
-import time
-from typing import ClassVar, List, Literal, Optional, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+from pydantic import Field
+
+from typing import ClassVar, Optional, Union
 
 try:
     from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 
-from webbrowser import Opera
 import requests
-from pydantic import Field, HttpUrl, ValidationError, parse_obj_as, parse_raw_as
+from pydantic import Field, HttpUrl, ValidationError, parse_obj_as
 from fhirkit.Parameter import Parameters
 from fhirkit.Server import AbstractFHIRTerminologyServer
-from fhirkit.ValueSet import VSCodingWithDesignation, VSExpansion, ValueSet
+from fhirkit.ValueSet import VSExpansion, ValueSet
 from fhirkit.data_types import Code
 from fhirkit.elements import CodeableConcept, Coding
 from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
