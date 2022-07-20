@@ -7,7 +7,7 @@ except ImportError:
 
 
 from pydantic import confloat, Field, AnyUrl
-from fhirkit.data_types import URI, Instant
+from fhirkit.primitive_datatypes import URI, Instant
 from fhirkit.elements import BackboneElement, Identifier
 from fhirkit.Resource import Resource
 

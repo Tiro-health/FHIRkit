@@ -1,4 +1,6 @@
-from typing import Optional, Sequence, Union
+from datetime import datetime  # this is important to have at the top
+
+from typing import List, Optional, Sequence, Union
 
 try:
     from typing import Literal
@@ -6,10 +8,10 @@ except ImportError:
     from typing_extensions import Literal
 
 
-from pydantic import BaseModel, Field, validator
-from fhirkit.ChoiceTypeMixin import validate_choice_types
+from pydantic import Field, validator
+from fhirkit.choice_type import deterimine_choice_type, ChoiceType
 from fhirkit.Resource import DomainResource
-from fhirkit.data_types import Code, dateTime, time
+from fhirkit.primitive_datatypes import Code, time
 from fhirkit.elements import (
     CodeableConcept,
     Identifier,
@@ -21,52 +23,30 @@ from fhirkit.elements import (
     BackboneElement,
 )
 
-# TODO find better solution for multitype value
-class ObservationValueChoiceTypeMixin(BaseModel):
+ValueType = Union[
+    str, Quantity, int, CodeableConcept, bool, Range, Ratio, time, datetime, Period
+]
 
-    valueString: Optional[str] = Field(None, exclude=True, repr=False)
-    valueQuantity: Optional[Quantity] = Field(None, exclude=True, repr=False)
-    valueInteger: Optional[int] = Field(None, exclude=True, repr=False)
-    valueCodeableConcept: Optional[CodeableConcept] = Field(
-        None, exclude=True, repr=False
-    )
-    valueBoolean: Optional[bool] = Field(None, exclude=True, repr=False)
-    valueRange: Optional[Range] = Field(None, exclude=True, repr=False)
-    valueRatio: Optional[Ratio] = Field(None, exclude=True, repr=False)
-    valueTime: Optional[time] = Field(None, exclude=True, repr=False)
-    valueDateTime: Optional[dateTime] = Field(None, exclude=True, repr=False)
-    valuePeriod: Optional[Period] = Field(None, exclude=True, repr=False)
 
-    value: Union[
-        str, Quantity, int, CodeableConcept, bool, Range, Ratio, time, dateTime, Period
-    ] = None
+class ObservationComponent(BackboneElement):
+    code: CodeableConcept
+    valueString: Optional[str] = Field(None, exclude=True)
+    valueQuantity: Optional[Quantity] = Field(None, exclude=True)
+    valueInteger: Optional[int] = Field(None, exclude=True)
+    valueCodeableConcept: Optional[CodeableConcept] = Field(None, exclude=True)
+    valueBoolean: Optional[bool] = Field(None, exclude=True)
+    valueRatio: Optional[Ratio] = Field(None, exclude=True)
+    valueTime: Optional[time] = Field(None, exclude=True)
+    valueDateTime: Optional[datetime] = Field(None, exclude=True)
+    valuePeriod: Optional[Period] = Field(None, exclude=True)
+    value: Optional[ValueType] = ChoiceType(None)
 
     @validator("value", pre=True, always=True, allow_reuse=True)
-    def validate_value(cls, v, values):
-        return validate_choice_types(
-            cls,
-            v,
-            values,
-            {
-                "valueString",
-                "valueQuantity",
-                "valueInteger",
-                "valueCodeableConcept",
-                "valueBoolean",
-            },
-            "value",
-        )
+    def validate_value(cls, v, values, field):
+        return deterimine_choice_type(cls, v, values, field)
 
 
-class ObservationComponent(BackboneElement, ObservationValueChoiceTypeMixin):
-
-    code: CodeableConcept
-
-
-class Observation(
-    DomainResource,
-    ObservationValueChoiceTypeMixin,
-):
+class Observation(DomainResource):
 
     resourceType: Literal["Observation"] = Field("Observation", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
@@ -81,21 +61,35 @@ class Observation(
         "unknown",
     ] = Field("final", repr=True)
     category: Sequence[CodeableConcept] = Field([], repr=True)
+
     code: CodeableConcept = Field(..., repr=True)
+    valueString: Optional[str] = Field(None, exclude=True)
+    valueQuantity: Optional[Quantity] = Field(None, exclude=True)
+    valueInteger: Optional[int] = Field(None, exclude=True)
+    valueCodeableConcept: Optional[CodeableConcept] = Field(None, exclude=True)
+    valueBoolean: Optional[bool] = Field(None, exclude=True)
+    valueRatio: Optional[Ratio] = Field(None, exclude=True)
+    valueTime: Optional[time] = Field(None, exclude=True)
+    valueDateTime: Optional[datetime] = Field(None, exclude=True)
+    valuePeriod: Optional[Period] = Field(None, exclude=True)
+    value: Optional[ValueType] = ChoiceType(None)
+
     subject: Optional[Reference]
     encounter: Optional[Reference]
 
     method: Optional[Code] = Field(None, repr=False)
     derivedFrom: Optional[Reference]
 
-    component: Sequence[ObservationComponent] = []
+    component: List[ObservationComponent] = Field([], repr=True)
 
-    effectiveDateTime: Optional[dateTime] = Field(None, exclude=True, repr=False)
-    effectivePeriod: Optional[Period] = Field(None, exclude=True, repr=False)
-    effective: Union[dateTime, Period] = None
+    effectivePeriod: Optional[Period] = Field(None, exclude=True)
+    effectiveDateTime: Optional[datetime] = Field(None, exclude=True)
+    effective: Union[datetime, Period] = ChoiceType(None)
 
-    @validator("effective", pre=True, always=True, allow_reuse=True)
-    def validate_effective(cls, v, values):
-        return validate_choice_types(
-            cls, v, values, ["effectiveDateTime", "effectivePeriod"], "effective"
-        )
+    @validator("value", pre=True, always=True, allow_reuse=True)
+    def validate_value(cls, v, values, field):
+        return deterimine_choice_type(cls, v, values, field)
+
+    @validator("effective", pre=True, always=True)
+    def validate_effective(cls, v, values, field):
+        return deterimine_choice_type(cls, v, values, field)

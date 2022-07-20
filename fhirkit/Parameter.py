@@ -3,7 +3,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from typing import Any, ClassVar, List, Optional, Set, Union
+from typing import Any, List, Optional, Union
 from pydantic import (
     Field,
     HttpUrl,
@@ -12,61 +12,26 @@ from pydantic import (
     StrictBool,
     validator,
 )
-from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from fhirkit.choice_type import deterimine_choice_type
 from fhirkit.Resource import Resource
-from fhirkit.data_types import Code
+from fhirkit.primitive_datatypes import Code
 from fhirkit.elements import BackboneElement, CodeableConcept, Coding
-
-
-class ParameterValueChoiceTypeMixin(ChoiceTypeMixinBase):
-    choice_type_fields: ClassVar[Set[str]] = {
-        "valueBoolean",
-        "valueString",
-        "valueCode",
-        "valueCoding",
-        "valueCodeableConcept",
-        "valueUri",
-        "valueInteger",
-    }
-    polymorphic_fields: ClassVar[Set[str]] = {"value"}
-    valueBoolean: Optional[StrictBool] = Field(None)
-    valueString: Optional[StrictStr] = Field(None)
-    valueCode: Optional[Code] = Field(None)
-    valueCoding: Optional[Coding] = Field(None)
-    valueCodeableConcept: Optional[CodeableConcept] = Field(None)
-    valueUri: Optional[HttpUrl] = Field(None)
-    valueInteger: Optional[StrictInt] = Field(None)
-    value: Union[
-        StrictBool, StrictStr, Code, Coding, CodeableConcept, HttpUrl, StrictInt
-    ] = Field(None, exclude=True)
-
-    @validator("value", pre=True, always=True, allow_reuse=True)
-    def validate_value(cls, v, values):
-        return validate_choice_types(
-            cls,
-            v,
-            values,
-            {
-                "valueBoolean",
-                "valueString",
-                "valueCode",
-                "valueCoding",
-                "valueCodeableConcept",
-                "valueUri",
-                "valueInteger",
-            },
-            "value",
-        )
 
 
 class AbstractParameter(BackboneElement):
     name: str
 
 
-class ValueParameter(
-    AbstractParameter,
-    ParameterValueChoiceTypeMixin,
-):
+class ValueParameter(AbstractParameter):
+    valueBoolean: Optional[bool] = Field(None, exclude=True)
+    value: Union[
+        StrictBool, StrictStr, Code, Coding, CodeableConcept, HttpUrl, StrictInt
+    ] = None
+
+    @validator("value", pre=True, always=True, allow_reuse=True)
+    def validate_value(cls, v, values, field):
+        return deterimine_choice_type(cls, v, values, field)
+
     def __str__(self) -> str:
         return f"{self.name}:{self.value}"
 

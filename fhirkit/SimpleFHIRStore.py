@@ -38,7 +38,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
         self, resources: Sequence[R], base_url: Optional[Union[str, HttpUrl]] = None
     ) -> None:
         self._resources = resources
-        super().__init__()
+        super().__init__(base_url)
 
     def __iter__(self):
         yield from self._resources
@@ -51,22 +51,34 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
 
     def get_resource(
         self,
-        resourceType: str,
+        resourceType: Optional[str],
         *,
         id: Optional[str] = None,
         url: Optional[Union[str, HttpUrl]] = None,
     ):
-        if url is None and self.base_url is not None:
-            if id is None:
-                raise RuntimeError(
-                    "At least resource.id or resource.url must be given to be able to identify the requested resource"
-                )
-            url = self.base_url + "/"
-            url += resourceType + "/" + id
-        assert self._resources is not None
-        for r in self._resources:
-            if (r.resourceType == resourceType or resourceType is None) and r.id == id:
-                return r
+        # TODO handle case where url is given
+        if url is not None and self.base_url is not None:
+            target_url = url if isinstance(url, HttpUrl) else HttpUrl(url)
+            assert self._resources is not None
+            for r in self._resources:
+                if (
+                    target_url.path is not None
+                    and target_url.path.endswith(r.resourceType + "/" + r.id)
+                    and target_url.path.startswith(self.base_url.path)
+                    and target_url.host == self._base_url.host
+                ):
+                    return r
+        if id is not None and self.base_url is not None:
+            assert self._resources is not None
+            for r in self._resources:
+                if (
+                    r.resourceType == resourceType or resourceType is None
+                ) and r.id == id:
+                    return r
+        if id is None and url is None:
+            raise RuntimeError(
+                "At least resource.id or resource.url must be given to be able to identify the requested resource"
+            )
         t = resourceType or "Resource"
         raise ResourceNoteFoundError(f"{t} with id={id} not found.")
 

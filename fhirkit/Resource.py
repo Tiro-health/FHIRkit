@@ -17,10 +17,11 @@ from typing import (
     Union,
     Generator,
 )
-from pydantic import AnyUrl, BaseModel, Extra, HttpUrl, Field, PrivateAttr
-from fhirkit.Server import AbstractFHIRTerminologyServer
-from fhirkit.data_types import Code, Id, Instant, dateTime
+from pydantic import Extra, Field, PrivateAttr
+from fhirkit import BaseModel
+from fhirkit.primitive_datatypes import URI, Code, Id, Instant, dateTime
 from fhirkit.elements import (
+    AbstractFHIRServer,
     BackboneElement,
     CodeableConcept,
     ContactDetail,
@@ -30,27 +31,27 @@ from fhirkit.elements import (
     Extension,
     Coding,
     Period,
+    Range,
     UsageContext,
 )
-from fhirkit.ChoiceTypeMixin import AbstractChoiceTypeMixin
 
 
 class Meta(BaseModel):
     versionId: Optional[Id]
     lastUpdated: Optional[Instant]
-    source: Optional[AnyUrl]
-    profile: List[AnyUrl] = []
+    source: Optional[URI]
+    profile: List[URI] = []
     security: List[Coding] = []
     tag: List[Coding] = []
 
 
-class Resource(AbstractChoiceTypeMixin, BaseModel):
-    _fhir_server: Optional[AbstractFHIRTerminologyServer] = PrivateAttr(None)
+class Resource(BaseModel):
+    _fhir_server: Optional[AbstractFHIRServer] = PrivateAttr(None)
 
     resourceType: str
     id: Optional[str] = Field(None, repr=False)
     meta: Optional[Meta] = Field(None, repr=False)
-    implicitRules: Optional[HttpUrl] = Field(None, repr=False)
+    implicitRules: Optional[URI] = Field(None, repr=False)
     language: Optional[Code] = Field(None, repr=False)
 
     def record(
@@ -65,8 +66,6 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = True,
-        exclude_choice_type: bool = True,
-        exclude_polymorphic: bool = False,
     ):
         tuple_generator = self._iter(
             False,
@@ -76,8 +75,6 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
             exclude_unset,
             exclude_defaults,
             exclude_none,
-            exclude_choice_type=exclude_choice_type,
-            exclude_polymorphic=exclude_polymorphic,
         )
         return dict(self._assemble_key_recursively(tuple_generator))
 
@@ -104,7 +101,6 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
                 exclude_unset,
                 exclude_defaults,
                 exclude_none,
-                exclude_choice_type=False,
             )
         )
 
@@ -115,20 +111,12 @@ class Resource(AbstractChoiceTypeMixin, BaseModel):
             for key, value in enumerate(obj):
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
-        elif isinstance(obj, (BackboneElement, Resource, Generator, Period)):
+        elif isinstance(obj, (BackboneElement, Resource, Generator, Period, Range)):
             for key, value in obj:
                 for childKeys, childValue in self._assemble_key_recursively(value):
                     yield (key, *childKeys), childValue
         else:
             yield (), obj
-
-    @property
-    def choice_type_fields(self) -> Set[str]:
-        return set()
-
-    @property
-    def polymorphic_fields(self) -> Set[str]:
-        return set()
 
     class Config:
         arbitrary_types_allowed = True
@@ -149,14 +137,14 @@ class DomainResource(Resource):
 
 
 class CanonicalResource(DomainResource):
-    url: Optional[AnyUrl] = None
+    url: Optional[URI] = None
     identifier: Sequence[Identifier] = []
     version: Optional[str] = None
     name: Optional[str] = None
     title: Optional[str] = None
     status: Literal["draft", "active", "retired", "unknown"]
     experimental: Optional[bool] = None
-    date: Optional[dateTime] = None
+    date: Optional[Union[date, dateTime]] = None
     publisher: Optional[str] = None
     contact: Sequence[ContactDetail] = []
     description: Optional[str] = None

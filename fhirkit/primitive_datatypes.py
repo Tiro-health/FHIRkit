@@ -1,4 +1,8 @@
-from datetime import datetime, time
+from datetime import (
+    datetime,
+    time,
+    date,
+)  # these unused classes are meant to indicate that they are primite dateatype in fhirkit
 from pydantic import constr
 
 
@@ -10,3 +14,5 @@ Instant = constr(
 XHTML = constr()
 dateTime = datetime
 URI = constr(regex="\S*")
+canonical = constr(regex="\S*")
+decimal = float

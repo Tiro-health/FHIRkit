@@ -8,8 +8,8 @@ except ImportError:
     from typing_extensions import Literal
 
 from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
-from fhirkit.Resource import CanonicalResource, DomainResource
-from fhirkit.ChoiceTypeMixin import ChoiceTypeMixinBase, validate_choice_types
+from fhirkit.Resource import CanonicalResource
+from fhirkit.choice_type import deterimine_choice_type
 from fhirkit.elements import (
     BackboneElement,
     CodeableConcept,
@@ -17,7 +17,7 @@ from fhirkit.elements import (
     Identifier,
     UsageContext,
 )
-from fhirkit.data_types import Code, dateTime
+from fhirkit.primitive_datatypes import Code, dateTime
 from fhirkit.metadata_types import ContactDetail
 
 
@@ -31,52 +31,16 @@ class CSConceptDesignation(BackboneElement):
     value: str
 
 
-class CSConceptPropertyValueChoiceTypeMixin(ChoiceTypeMixinBase):
-    choice_type_fields: ClassVar[Set[str]] = {
-        "valueBoolean",
-        "valueString",
-        "valueCode",
-        "valueCoding",
-        "valueDateTime",
-        "valueDecimal",
-    }
-    polymorphic_fields: ClassVar[Set[str]] = {"value"}
-    valueBoolean: Optional[StrictBool] = Field(None)
-    valueString: Optional[StrictStr] = Field(None)
-    valueCode: Optional[Code] = Field(None)
-    valueCoding: Optional[Coding] = Field(None)
-    valueDateTime: Optional[dateTime] = Field(None)
-    valueDecimal: Optional[float] = Field(None)
-    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = Field(
-        None, exclude=True
-    )
+class CSConceptProperty(BackboneElement):
+    code: Code
+    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = None
 
     @validator("value", pre=True, always=True, allow_reuse=True)
-    def validate_value(cls, v, values):
-        return validate_choice_types(
-            cls,
-            v,
-            values,
-            {
-                "valueBoolean",
-                "valueString",
-                "valueCode",
-                "valueCoding",
-                "valueDateTime",
-                "valueDecimal",
-            },
-            "value",
-        )
+    def validate_value(cls, v, values, field):
+        return deterimine_choice_type(cls, v, values, field)
 
     def __str__(self) -> str:
-        return str(self.value)
-
-
-class CSConceptProperty(BackboneElement, CSConceptPropertyValueChoiceTypeMixin):
-    code: Code
-
-    def __str__(self) -> str:
-        return str(self.code) + ": " + super().__str__()
+        return str(self.code) + ": " + str(self.value)
 
 
 class CSConcept(BackboneElement):
@@ -195,7 +159,17 @@ class CodeSystem(CanonicalResource):
     def __iter__(self):
         yield from traverse_concepts(self.concept)
 
+    def __len__(self):
+        if self.count:
+            return self.count
+        if self.content == "complete":
+            self.count = len(self)
+        raise ValueError(
+            "CodeSystem.count is None and we have not strategy to estimate the number of concepts when CodeSystem.content != 'complete'"
+        )
+
     def __getitem__(self, key: Code | Coding) -> CSConceptLookup:
+
         if isinstance(key, (Code, str)):
             return self.lookup(code=key)
         elif isinstance(key, Coding):

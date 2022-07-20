@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 from pydantic import Field
 from fhirkit.Resource import DomainResource
 from fhirkit.elements import BackboneElement, CodeableConcept
-from fhirkit.data_types import Code
+from fhirkit.primitive_datatypes import Code
 
 
 class OperationOutcomeIssue(BackboneElement):

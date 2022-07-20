@@ -18,9 +18,9 @@ except ImportError:
 import requests
 from pydantic import Field, HttpUrl, ValidationError, parse_obj_as
 from fhirkit.Parameter import Parameters
-from fhirkit.Server import AbstractFHIRTerminologyServer
+from fhirkit.TerminologyServer import AbstractFHIRTerminologyServer
 from fhirkit.ValueSet import VSExpansion, ValueSet
-from fhirkit.data_types import Code
+from fhirkit.primitive_datatypes import Code
 from fhirkit.elements import CodeableConcept, Coding
 from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
 

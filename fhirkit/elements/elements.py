@@ -1,21 +1,27 @@
 from __future__ import annotations
-from datetime import datetime
 import itertools
-from typing import Any, ClassVar, ForwardRef, Optional, Sequence, Set, Union
+from typing import Any, ForwardRef, Optional, Sequence, Union
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 
-from pydantic import AnyUrl, BaseModel, Field, HttpUrl, validator
-from fhirkit.data_types import URI, Code, XHTML
-from fhirkit.ChoiceTypeMixin import validate_choice_types, ChoiceTypeMixinBase
+from pydantic import AnyUrl, Field, HttpUrl
+from fhirkit import BaseModel
+from fhirkit.primitive_datatypes import URI, Code, XHTML, dateTime
+from fhirkit.Server import AbstractFHIRServer
 
 
 class Element(BaseModel):
     id: Optional[str]
     extension: Sequence[Extension] = Field([], repr=False)
+
+
+class Attachment(Element):
+    contentType: Optional[Code]
+    language: Optional[Code]
+    # TODO how to type base64 encode bytes
 
 
 class Narrative(Element):
@@ -107,8 +113,8 @@ CodeableConcept.update_forward_refs()
 
 
 class Period(Element):
-    start: Optional[datetime]
-    end: Optional[datetime]
+    start: Optional[dateTime]
+    end: Optional[dateTime]
 
 
 class Reference(Element):
@@ -123,6 +129,10 @@ class Reference(Element):
         if self.type is not None and self.reference is not None:
             return self.type + "/" + self.reference
         return super().__repr__()
+
+    def resolve(self, store: AbstractFHIRServer):
+        if self.reference:
+            return store[self.reference.replace("urn:uuid:", "")]
 
 
 class Identifier(Element):
@@ -162,6 +172,15 @@ class SimpleQuantity(Quantity):
     comparator: None = Field(..., const=True)
 
 
+# TODO specify these derived quantities further
+class Age(Quantity):
+    pass
+
+
+class Duration(Quantity):
+    pass
+
+
 class Range(Element):
     low: Optional[SimpleQuantity]
     high: Optional[SimpleQuantity]
@@ -184,29 +203,3 @@ class ContactPoint(Element):
 class ContactDetail(Element):
     name: Optional[str]
     telecom: Sequence[ContactPoint] = []
-
-
-class UsageContext(Element, ChoiceTypeMixinBase):
-    code: Coding
-    choice_type_fields: ClassVar[Set[str]] = {
-        "valueQuantity",
-        "valueRange",
-        "valueCodeableConcept",
-        "valueReference",
-    }
-    polymorphic_fields: ClassVar[Set[str]] = {"value"}
-    valueQuantity: Optional[Quantity] = None
-    valueRange: Optional[Range] = None
-    valueCodeableConcept: Optional[CodeableConcept] = None
-    valueReference: Optional[Reference] = None
-    value: Union[Quantity, Range, CodeableConcept, Reference] = None
-
-    @validator("value", pre=True, always=True, allow_reuse=True)
-    def validate_value(cls, value, values):
-        return validate_choice_types(
-            cls,
-            value,
-            values,
-            {"valueQuantity", "valueRange", "valueCodeableConcept", "valueReference"},
-            "value",
-        )

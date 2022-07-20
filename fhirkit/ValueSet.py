@@ -1,14 +1,13 @@
-import abc
 from datetime import date, datetime
-from enum import auto
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 from typing import Iterable, List, Optional, Sequence, Union
-from pydantic import AnyUrl, BaseModel, Field, HttpUrl
-from fhirkit.data_types import URI, dateTime
+from pydantic import Field
+from fhirkit import BaseModel
+from fhirkit.primitive_datatypes import URI, dateTime
 from fhirkit.elements import (
     BackboneElement,
     CodeableConcept,
@@ -16,7 +15,7 @@ from fhirkit.elements import (
     Narrative,
     UsageContext,
 )
-from fhirkit.Resource import CanonicalResource, Resource
+from fhirkit.Resource import CanonicalResource
 
 
 class VSDesignation(BaseModel):
@@ -50,11 +49,11 @@ class VSFilter(BackboneElement):
 
 
 class VSInclude(BackboneElement):
-    system: Optional[HttpUrl]
+    system: Optional[URI]
     version: Optional[str]
     concept: Sequence[VSConcept] = Field(default=[])
     filter: Sequence[VSFilter] = Field(default=[])
-    valueSet: Sequence[HttpUrl] = Field(default=[])
+    valueSet: Sequence[URI] = Field(default=[])
 
 
 class VSCompose(BaseModel):
@@ -243,3 +242,6 @@ class SimpleValueSet(ValueSet):
             return any(c == code for c in self)
         else:
             return False
+
+
+ValueSet.update_forward_refs()

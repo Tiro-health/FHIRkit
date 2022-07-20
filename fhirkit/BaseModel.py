@@ -1,20 +1,20 @@
-import abc
 from typing import (
     AbstractSet,
     Any,
     Callable,
     Dict,
+    Generator,
     Mapping,
     Optional,
-    Set,
     Tuple,
     Union,
-    Generator,
     cast,
 )
+import pydantic
 
-from pydantic import BaseModel, ValidationError, validator
-from pydantic.utils import ValueItems, ROOT_KEY
+from pydantic.utils import ROOT_KEY
+
+from fhirkit.choice_type.validators import TYPE_NAME_ALIAS, get_matching_type
 
 IntStr = Union[int, str]
 AbstractSetIntStr = AbstractSet[IntStr]
@@ -22,14 +22,9 @@ MappingIntStrAny = Mapping[IntStr, Any]
 DictStrAny = Dict[str, Any]
 
 
-class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
-    @property
-    def choice_type_fields(self) -> Set[str]:
-        return set()
-
-    @property
-    def polymorphic_fields(self) -> Set[str]:
-        return set()
+class BaseModel(pydantic.BaseModel):
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
 
     def _iter(
         self,
@@ -44,14 +39,9 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        exclude_choice_type: bool = False,
-        exclude_polymorphic: bool = True,
+        exclude_empty: bool = True,
     ) -> Generator[Tuple[str, Any], None, None]:
-        if exclude_choice_type:
-            exclude = ValueItems.merge(exclude, self.choice_type_fields)
-        if exclude_polymorphic:
-            exclude = ValueItems.merge(exclude, self.polymorphic_fields)
-        return super()._iter(
+        for k, v in super()._iter(
             to_dict,
             by_alias,
             include,
@@ -59,7 +49,27 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
             exclude_unset,
             exclude_defaults,
             exclude_none,
-        )
+        ):
+            if exclude_empty:
+                if v is None:
+                    continue
+                try:
+                    if len(v) == 0:
+                        continue
+                except TypeError:
+                    pass
+            if by_alias and k in self.__fields__:
+                field = self.__fields__[k]
+                if "choice_type" in field.field_info.extra:
+                    # notice that 'v' can be a dict when are being called from Model.dict()
+                    # this is why we use self.__getattribute to get the original type
+                    type_class = get_matching_type(self.__getattribute__(k), field)
+                    suffix = TYPE_NAME_ALIAS.get(
+                        type_class.__name__, type_class.__name__
+                    )
+                    suffix = suffix[:1].title() + suffix[1:]
+                    k = k + suffix
+            yield k, v
 
     def dict(
         self,
@@ -70,13 +80,7 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        exclude_choice_type: bool = False,
-        exclude_polymorphic: bool = True,
     ) -> DictStrAny:
-        if exclude_choice_type:
-            exclude = ValueItems.merge(exclude, self.choice_type_fields)
-        if exclude_polymorphic:
-            exclude = ValueItems.merge(exclude, self.polymorphic_fields)
         return dict(
             self._iter(
                 to_dict=True,
@@ -94,12 +98,11 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
         *,
         include: Union[AbstractSetIntStr, MappingIntStrAny] = None,
         exclude: Union[AbstractSetIntStr, MappingIntStrAny] = None,
-        by_alias: bool = False,
+        by_alias: bool = True,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        exclude_choice_type: bool = False,
-        exclude_polymorphic: bool = True,
+        exclude_none: bool = True,
+        exclude_empty: bool = True,
         encoder: Optional[Callable[[Any], Any]] = None,
         models_as_dict: bool = True,
         **dumps_kwargs: Any,
@@ -118,45 +121,9 @@ class AbstractChoiceTypeMixin(abc.ABC, BaseModel):
                 exclude_unset=exclude_unset,
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
-                exclude_choice_type=exclude_choice_type,
-                exclude_polymorphic=exclude_polymorphic,
+                exclude_empty=exclude_empty,
             )
         )
         if self.__custom_root_type__:
             data = data[ROOT_KEY]
         return self.__config__.json_dumps(data, default=encoder, **dumps_kwargs)
-
-
-class ChoiceTypeMixinBase(AbstractChoiceTypeMixin):
-    pass
-
-
-def validate_choice_types(
-    cls, v, values, choice_types: Set[str], polymorphic_field: str
-):
-    if v is not None:
-        return v
-
-    non_null_values = list(
-        filter(
-            lambda t: t[0] in choice_types and t[1] is not None,
-            values.items(),
-        )
-    )
-    if len(non_null_values) == 0:
-        pass
-        # candidate_choice_types = [
-        # f
-        # for f in values.keys()
-        # if f.startswith(polymorphic_field) and values[f] is not None
-        # ]
-        # raise ValueError(
-        #    f"{cls.__class__.__name__}.{polymorphic_field}[x] can not be None. Maybe one if these fields is not supported yet: {str(candidate_choice_types)}"
-        #    ""
-        # )
-        return
-    elif len(non_null_values) > 1:
-        raise ValueError(
-            f"{cls.__class__.__name__}.{polymorphic_field}[x] can only have one value."
-        )
-    return non_null_values[0][1]

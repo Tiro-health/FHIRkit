@@ -1,8 +1,5 @@
-from typing import Optional
 from pydantic import Field, HttpUrl
-from fhirkit.Server import AbstractFHIRTerminologyServer
 from fhirkit.elements import CodeableConcept, Coding
-from fhirkit.ValueSet import ValueSet
 from .ValueSet import (
     SCTDescendantsFilter,
     SCTImplicitCompose,

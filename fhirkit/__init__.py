@@ -1,3 +1,4 @@
+from .BaseModel import BaseModel
 from .Resource import Resource
 from .elements import CodeableConcept, Coding, Quantity, Reference
 from .CodeSystem import CodeSystem
