@@ -1,3 +1,4 @@
+import pytest_check as check
 from fhirkit import ValueSet, SCTCoding, SimpleValueSet, CodeableConcept
 
 
@@ -17,8 +18,16 @@ def test_valueset_contains():
     )
 
     cytokinetherapie = SCTCoding("84501003 | cytokinetherapie |")
-
     assert cytokinetherapie in vs_therapeutic_procedures
+
+
+def test_valueset_usage_context():
+    vs_therapeutic_procedures = ValueSet.parse_file(
+        "./test/valuesets/therapeutic-procedure.json"
+    )
+    check.equal(len(vs_therapeutic_procedures.useContext), 4)
+    for usage_context in vs_therapeutic_procedures.useContext:
+        check.is_not_none(usage_context.value)
 
 
 def test_valueset_iterator():

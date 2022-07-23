@@ -7,7 +7,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from pydantic import AnyUrl, Field, HttpUrl
+from pydantic import AnyUrl, Field, HttpUrl, validator
 from fhirkit import BaseModel
 from fhirkit.primitive_datatypes import URI, Code, XHTML, dateTime
 from fhirkit.Server import AbstractFHIRServer
