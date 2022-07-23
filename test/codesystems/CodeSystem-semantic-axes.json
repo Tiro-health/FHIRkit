@@ -1,0 +1,471 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "active",
+  "content": "complete",
+  "name": "SemanticAxes",
+  "id": "semantic-axes",
+  "title": "Semantic Axes",
+  "version": "0.1.1",
+  "url": "http://tiro.health/fhir/CodeSystem/semantic-axes",
+  "concept": [
+    {
+      "code": "disorder",
+      "display": "aandoening",
+      "concept": [
+        {
+          "code": "history-of-disorder",
+          "display": "voorgeschiedenis met ziekte",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "312850006",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331"
+              }
+            }
+          ]
+        },
+        {
+          "code": "disorder-present",
+          "display": "aandoening bevestigd",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "373573001",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331",
+                "display": "aandoening bevestigd"
+              }
+            }
+          ]
+        },
+        {
+          "code": "disorder-absent",
+          "display": "aandoening uitgesloten",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "315215002",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331",
+                "display": "aandoening uitgesloten"
+              }
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "64572001",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "aandoening"
+          }
+        }
+      ]
+    },
+    {
+      "code": "finding",
+      "display": "bevinding",
+      "concept": [
+        {
+          "code": "finding-present",
+          "display": "bevinding aanwezig",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "373573001",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331",
+                "display": "bevinding aanwezig"
+              }
+            }
+          ]
+        },
+        {
+          "code": "finding-absent",
+          "display": "bevinding afwezig",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "373572006",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331",
+                "display": "bevinding afwezig"
+              }
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "404684003",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "klinische bevinding"
+          }
+        }
+      ]
+    },
+    {
+      "code": "procedure",
+      "display": "procedure",
+      "concept": [
+        {
+          "code": "procedure-planned",
+          "display": "procedure gepland",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "405613005",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915",
+                "display": "procedure gepland"
+              }
+            }
+          ]
+        },
+        {
+          "code": "procedure-carried-out-on-subject",
+          "display": "procedure uitgevoerd",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "443938003",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915",
+                "display": "verrichting uitgevoerd"
+              }
+            }
+          ]
+        },
+        {
+          "code": "procedure-started",
+          "display": "procedure gestart",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "394906002",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915",
+                "display": "verrichting begonnen"
+              }
+            }
+          ]
+        },
+        {
+          "code": "procedure-stopped",
+          "display": "procedure gestopt",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "394908001",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915",
+                "display": "verrichting afgebroken"
+              }
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "71388002",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "procedure"
+          }
+        }
+      ]
+    },
+    {
+      "code": "operative-procedure",
+      "display": "operatieve ingreep",
+      "concept": [
+        {
+          "code": "history-of-surgery",
+          "display": "voorgeschiedenis met operatie",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "161615003",
+                "system": "http://snomed.info/sct",
+                "display": "voorgeschiedenis met operatie"
+              }
+            }
+          ]
+        },
+        {
+          "code": "operative-procedure-planned",
+          "display": "operatie gepland",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "183976008",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915",
+                "display": "operatie gepland"
+              }
+            }
+          ]
+        },
+        {
+          "code": "surgery-carried-out-on-subject",
+          "display": "operatie voltooid",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "443938003:{363589002=387713003}",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000172109/version/20210915"
+              }
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "387713003",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915"
+          }
+        }
+      ]
+    },
+    {
+      "code": "regime/therapy",
+      "display": "regime/therapie",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "243120004",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "regimes en behandelingen"
+          }
+        }
+      ]
+    },
+    {
+      "code": "drug-therapy",
+      "display": "geneesmiddel",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "416608005",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "behandeling met geneesmiddel"
+          }
+        }
+      ]
+    },
+    {
+      "code": "body-structure",
+      "display": "lichaamsdeel",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "123037004",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "lichaamsdeel"
+          }
+        }
+      ]
+    },
+    {
+      "code": "observable-entity",
+      "display": "waarneembare entiteit",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "363787002",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "waarneembare entiteit"
+          }
+        }
+      ]
+    },
+    {
+      "code": "morphologic-abnormality",
+      "display": "afwijking",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "49755003",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "morfologische afwijking"
+          }
+        }
+      ]
+    },
+    {
+      "code": "cell-structure",
+      "display": "celstructuur",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "4421005",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "celstructuur"
+          }
+        }
+      ]
+    },
+    {
+      "code": "substance",
+      "display": "substantie",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "4421005",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "substantie"
+          }
+        }
+      ]
+    },
+    {
+      "code": "clinical-drug",
+      "display": "geneesmiddel",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "410942007",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "geneesmiddel"
+          }
+        }
+      ]
+    },
+    {
+      "code": "qualifier-value",
+      "display": "kwalificatie",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "362981000",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "kwalificatie waarde"
+          }
+        }
+      ]
+    },
+    {
+      "code": "person",
+      "display": "persoon",
+      "concept": [
+        {
+          "code": "performer",
+          "display": "performer",
+          "property": [
+            {
+              "code": "eq",
+              "valueCoding": {
+                "code": "420158005",
+                "system": "http://snomed.info/sct/",
+                "version": "http://snomed.info/sct/11000146104/version/20210331",
+                "display": "uitvoerder van methode"
+              }
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "125676002",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "persoon"
+          }
+        }
+      ]
+    },
+    {
+      "code": "monster",
+      "display": "monster",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "123038009",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "monster"
+          }
+        }
+      ]
+    },
+    {
+      "code": "assessement-scale",
+      "display": "score",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "273249006",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000146104/version/20210331",
+            "display": "beoordelingsschaal"
+          }
+        }
+      ]
+    },
+    {
+      "code": "physical-force",
+      "display": "fysieke kracht",
+      "property": [
+        {
+          "code": "eq",
+          "valueCoding": {
+            "code": "260787004",
+            "system": "http://snomed.info/sct/",
+            "version": "http://snomed.info/sct/11000172109/version/20210915",
+            "display": "fysiek object"
+          }
+        }
+      ]
+    }
+  ],
+  "publisher": "Tiro.health",
+  "hierarchyMeaning": "classified-with",
+  "count": 30
+}

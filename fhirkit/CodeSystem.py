@@ -2,6 +2,8 @@ from __future__ import annotations
 from email.generator import Generator
 from typing import Any, ClassVar, Optional, Sequence, Set, TypeVar, Union
 
+from fhirkit.choice_type import ChoiceType
+
 try:
     from typing import Literal
 except ImportError:
@@ -33,7 +35,15 @@ class CSConceptDesignation(BackboneElement):
 
 class CSConceptProperty(BackboneElement):
     code: Code
-    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = None
+    valueBoolean: Optional[StrictBool] = Field(None, exclude=True)
+    valueString: Optional[StrictStr] = Field(None, exclude=True)
+    valueCode: Optional[Code] = Field(None, exclude=True)
+    valueCoding: Optional[Coding] = Field(None, exclude=True)
+    valueDateTime: Optional[dateTime] = Field(None, exclude=True)
+    valueDecimal: Optional[float] = Field(None, exclude=True)
+    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = ChoiceType(
+        None
+    )
 
     @validator("value", pre=True, always=True, allow_reuse=True)
     def validate_value(cls, v, values, field):
