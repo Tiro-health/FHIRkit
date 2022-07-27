@@ -8,3 +8,4 @@ def test_codesystem_property():
     )
     for code in semantic_axes.concept:
         check.is_not_none(code.eq)
+        code.eq.dict()

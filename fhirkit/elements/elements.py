@@ -7,7 +7,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from pydantic import AnyUrl, Field, HttpUrl, validator
+from pydantic import AnyUrl, Field
 from fhirkit import BaseModel
 from fhirkit.primitive_datatypes import URI, Code, XHTML, dateTime
 from fhirkit.Server import AbstractFHIRServer
@@ -48,7 +48,7 @@ class AbstractCoding(Element):
 
     display: Optional[str]
     code: str
-    system: Optional[Union[HttpUrl, str]]
+    system: Optional[URI]
     version: Optional[str]
 
     class Config:
@@ -90,7 +90,7 @@ class CodeableConcept(BaseModel):
     """FHIR Terminology based model for CodeableConcepts"""
 
     text: Optional[str] = None
-    coding: Sequence[Coding] = Field(default=[])
+    coding: Sequence[Coding] = Field([])
     active: Optional[bool] = None
 
     def __str__(self) -> str:

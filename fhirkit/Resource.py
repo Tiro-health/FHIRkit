@@ -65,7 +65,7 @@ class Resource(BaseModel):
         ] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
-        exclude_none: bool = True,
+        exclude_empty: bool = True,
     ):
         tuple_generator = self._iter(
             False,
@@ -74,7 +74,7 @@ class Resource(BaseModel):
             exclude,
             exclude_unset,
             exclude_defaults,
-            exclude_none,
+            exclude_empty,
         )
         return dict(self._assemble_key_recursively(tuple_generator))
 
@@ -91,6 +91,7 @@ class Resource(BaseModel):
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
+        exclude_empty: bool = False,
     ) -> Dict[str, Any]:
         return dict(
             super()._iter(
@@ -98,9 +99,10 @@ class Resource(BaseModel):
                 by_alias,
                 include,
                 exclude,
-                exclude_unset,
-                exclude_defaults,
-                exclude_none,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_empty=exclude_empty,
+                exclude_none=exclude_none,
             )
         )
 

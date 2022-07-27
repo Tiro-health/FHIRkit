@@ -86,13 +86,13 @@ class ValueSet(CanonicalResource):
 
     def __iter__(self):
         if not self.has_expanded:
-            self._expand()
+            self.expand()
         for coding in self.expansion.contains:
             yield coding
 
     def __len__(self):
         if not self.has_expanded:
-            self._expand()
+            self.expand()
             assert (
                 self.has_expanded
             ), "ValueSet has no expansion even after running `self.expand()`."
@@ -106,12 +106,6 @@ class ValueSet(CanonicalResource):
     @property
     def has_expanded(self):
         return self.expansion is not None
-
-    def _expand(self):
-        """Private wrapper method for `self.expand`"""
-        assert (
-            self.has_expanded
-        ), "ValueSet has no expansion even after running `self.expand()`."
 
     def expand(self):
         """Override this method to implement expansion logic.

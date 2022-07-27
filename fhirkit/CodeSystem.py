@@ -19,7 +19,7 @@ from fhirkit.elements import (
     Identifier,
     UsageContext,
 )
-from fhirkit.primitive_datatypes import Code, dateTime
+from fhirkit.primitive_datatypes import URI, Code, dateTime
 from fhirkit.metadata_types import ContactDetail
 
 
@@ -96,7 +96,7 @@ def traverse_concepts(
 
 class CodeSystem(CanonicalResource):
     resourceType = Field("CodeSystem", const=True)
-    url: Optional[AnyUrl]
+    url: Optional[URI]
     identifier: Sequence[Identifier] = []
     version: Optional[str]
     name: Optional[str]
@@ -112,14 +112,14 @@ class CodeSystem(CanonicalResource):
     purpose: Optional[str]
     copyright: Optional[str]
     caseSensitive: Optional[bool]
-    valueSet: Optional[AnyUrl]
+    valueSet: Optional[URI]
     hierarchyMeaning: Optional[
         Literal["grouped-by", "is-a", "part-of", "classified-with"]
     ]
     compositional: Optional[bool]
     versionNeeded: Optional[bool]
     content: Literal["not-present", "example", "fragment", "complete", "supplement"]
-    supplements: Optional[AnyUrl]
+    supplements: Optional[URI]
     count: Optional[int]
     concept: Sequence[CSConcept] = []
 
@@ -157,8 +157,7 @@ class CodeSystem(CanonicalResource):
                             "property",
                             "display",
                             "version",
-                        },
-                        exclude_unset=True,
+                        }
                     ),
                 )
 
