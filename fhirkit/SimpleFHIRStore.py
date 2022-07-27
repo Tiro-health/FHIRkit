@@ -68,7 +68,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
                     and target_url.host == self._base_url.host
                 ):
                     return r
-        if id is not None and self.base_url is not None:
+        if id is not None:
             assert self._resources is not None
             for r in self._resources:
                 if (
