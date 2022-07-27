@@ -4,4 +4,4 @@ from fhirkit.elements import ContactPoint, Element
 
 class ContactDetail(Element):
     name: Optional[str]
-    telecom: Sequence[ContactPoint]
+    telecom: Sequence[ContactPoint] = []

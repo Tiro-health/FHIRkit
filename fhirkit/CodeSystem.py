@@ -19,7 +19,7 @@ from fhirkit.elements import (
     Identifier,
     UsageContext,
 )
-from fhirkit.primitive_datatypes import URI, Code, dateTime
+from fhirkit.primitive_datatypes import URI, Code, dateTime, date
 from fhirkit.metadata_types import ContactDetail
 
 
@@ -103,7 +103,7 @@ class CodeSystem(CanonicalResource):
     title: Optional[str]
     status: Literal["draft", "active", "retired", "unknown"]
     experimental: Optional[bool]
-    date: Optional[dateTime]
+    date: Optional[Union[date, dateTime]]
     publisher: Optional[str]
     contact: Sequence[ContactDetail] = []
     description: Optional[str]
@@ -185,4 +185,6 @@ class CodeSystem(CanonicalResource):
             return self.lookup(coding=key)
         raise KeyError("Key should be a Code or a Coding but received " + key)
 
-    CSConcept.update_forward_refs()
+
+CodeSystem.update_forward_refs()
+CSConcept.update_forward_refs()
