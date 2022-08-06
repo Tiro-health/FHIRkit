@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import total_ordering
 import itertools
 from typing import Any, ForwardRef, Optional, Sequence, Union
 
@@ -55,6 +56,7 @@ class AbstractCoding(Element):
         allow_mutation = False
 
 
+@total_ordering
 class Coding(AbstractCoding):
     def __repr__(self) -> str:
         if self.display:
@@ -78,6 +80,9 @@ class Coding(AbstractCoding):
         if isinstance(other, AbstractCoding):
             return self.system == other.system and self.code == other.code
         return False
+
+    def __lt__(self, other: AbstractCoding) -> bool:
+        return (self.system, self.code) < (other.system, other.code)
 
     def __hash__(self):
         return hash((self.system, self.code))
