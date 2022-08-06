@@ -9,7 +9,7 @@ class ExpansionError(Exception):
     pass
 
 
-class ResourceNoteFoundError(Exception):
+class ResourceNotFoundError(Exception):
     pass
 
 
