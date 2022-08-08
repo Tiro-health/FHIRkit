@@ -4,7 +4,7 @@ from typing import Callable, Generator, Generic, Optional, Sequence, TypeVar, Un
 
 from pydantic import HttpUrl, ValidationError, parse_file_as, parse_obj_as
 from fhirkit.Bundle import Bundle
-from fhirkit.Server import AbstractFHIRServer, ResourceNoteFoundError
+from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 from fhirkit.Resource import Resource
 from fhirkit.parse import AnyPatientResource, parse_json_as_resource
 from tqdm import tqdm
@@ -47,7 +47,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
         return len(self._resources)
 
     def filter(self, expr: Callable[[R], bool]):
-        return self.__class__([r for r in self if expr(r)], base_url=self.base_url)
+        return SimpleFHIRStore([r for r in self if expr(r)], base_url=self.base_url)
 
     def get_resource(
         self,
@@ -61,7 +61,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
                 "Can't resolve a resource that is not managed by this server (base URL=%s)"
                 % self.base_url
             )
-            *_, resourceType, id = uri.split("/")
+            *_, resourceType, id = url.split("/")
         if id is not None:
             assert self._resources is not None
             for r in self._resources:
@@ -74,7 +74,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRServer):
                 "At least an id or url must be given to be able to identify the requested resource"
             )
         t = resourceType or "Resource"
-        raise ResourceNoteFoundError(f"{t} with id={id} not found.")
+        raise ResourceNotFoundError(f"{t} with id={id} not found.")
 
     def _repr_html_(self):
         return (
