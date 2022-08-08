@@ -4,8 +4,9 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from pydantic import HttpUrl, PrivateAttr, root_validator
+from pydantic import PrivateAttr, root_validator
 from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
+from fhirkit.primitive_datatypes import URI
 from fhirkit.elements import CodeableConcept, Coding, Narrative
 from fhirkit.snomed.consts import SCT_URI
 from fhirkit.snomed.terminology import (
@@ -41,7 +42,7 @@ class SCTImplicitValueSet(ValueSet):
         default_factory=get_default_terminology_server
     )
     status: Literal["draft", "active", "retired", "unknown"] = "active"
-    url: Optional[Union[HttpUrl, str]]
+    url: Optional[URI]
     compose: Optional[SCTImplicitCompose]
 
     @root_validator
