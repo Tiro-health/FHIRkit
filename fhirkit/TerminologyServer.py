@@ -20,3 +20,13 @@ class AbstractFHIRTerminologyServer(AbstractFHIRServer):
         codeableConcept: Optional[CodeableConcept] = None,
     ) -> bool:
         raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_terminology_resource(
+        self,
+        resourceType: Optional[str],
+        *,
+        id: Optional[str] = None,
+        url: Optional[URI] = None,
+    ):
+        raise NotImplementedError()

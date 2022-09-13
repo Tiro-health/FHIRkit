@@ -49,15 +49,15 @@ class VSFilter(BackboneElement):
 
 
 class VSInclude(BackboneElement):
-    system: Optional[URI]
-    version: Optional[str]
+    system: Optional[URI] = None
+    version: Optional[str] = None
     concept: Sequence[VSConcept] = Field(default=[])
     filter: Sequence[VSFilter] = Field(default=[])
     valueSet: Sequence[URI] = Field(default=[])
 
 
 class VSCompose(BaseModel):
-    include: List[VSInclude]
+    include: List[VSInclude] = []
     exclude: List[VSInclude] = []
     property: Sequence[str] = []
     lockedDate: Optional[date]

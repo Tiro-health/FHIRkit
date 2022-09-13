@@ -21,6 +21,7 @@ from fhirkit import (
     CarePlan,
     CareTeam,
     Practitioner,
+    Provenance,
     Organization,
     AllergyIntolerance,
     Location,
@@ -29,6 +30,7 @@ from fhirkit import (
     Patient,
     Device,
     MedicationStatement,
+    SupplyDelivery,
 )
 
 AnyPatientResource = Annotated[
@@ -54,6 +56,8 @@ AnyPatientResource = Annotated[
         MedicationAdministration,
         Medication,
         Device,
+        Provenance,
+        SupplyDelivery,
     ],
     Field(discriminator="resourceType"),
 ]

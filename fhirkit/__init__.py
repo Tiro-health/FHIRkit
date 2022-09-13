@@ -19,6 +19,8 @@ from .CareTeam import CareTeam
 from .CarePlan import CarePlan
 from .Organization import Organization
 from .Practitioner import Practitioner
+from .Provenance import Provenance
+from .SupplyDelivery import SupplyDelivery
 from .PractitionerRole import PractitionerRole
 from .AllergyIntolerance import AllergyIntolerance
 from .ImagingStudy import ImagingStudy

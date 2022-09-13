@@ -15,9 +15,7 @@ class ResourceNotFoundError(Exception):
 
 class AbstractFHIRServer(ABC):
     def __init__(self, base_url: Optional[Union[str, HttpUrl]] = None) -> None:
-        self._base_url = (
-            parse_obj_as(HttpUrl, base_url) if base_url is not None else None
-        )
+        self._base_url = base_url
 
     @property
     def base_url(self):
@@ -26,25 +24,25 @@ class AbstractFHIRServer(ABC):
     @abc.abstractmethod
     def get_resource(
         self,
-        type: Optional[str] = None,
+        resourceType: Optional[str],
         *,
         id: Optional[str] = None,
-        url: Optional[str] = None,
+        uri: Optional[str] = None,
     ):
         pass
 
     def __getitem__(self, key: Union[str, Tuple[str, str], HttpUrl]):
         # TODO implement URL keys
         if isinstance(key, HttpUrl):
-            return self.get_resource(None, url=key)
+            return self.get_resource(None, uri=key)
         try:
-            url = parse_obj_as(HttpUrl, key)
+            uri = parse_obj_as(HttpUrl, key)
         except ValidationError:
             pass
         else:
-            return self.get_resource(None, url=url)
+            return self.get_resource(None, uri=uri)
         if isinstance(key, str):
-            if len(key.split("/")) > 1:
+            if len(key.split("/")) == 2:
                 resourceType, id = key.split("/")
             else:
                 resourceType = None
