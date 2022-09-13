@@ -20,7 +20,7 @@ from pydantic import Field, HttpUrl, ValidationError, parse_obj_as
 from fhirkit.Parameter import Parameters
 from fhirkit.TerminologyServer import AbstractFHIRTerminologyServer
 from fhirkit.ValueSet import VSExpansion, ValueSet
-from fhirkit.primitive_datatypes import Code
+from fhirkit.primitive_datatypes import URI, Code
 from fhirkit.elements import CodeableConcept, Coding
 from fhirkit.OperationOutcome import OperationOutcome, OperationOutcomeException
 
@@ -55,6 +55,15 @@ class SCTFHIRTerminologyServer(AbstractFHIRTerminologyServer):
         if cls.DEFAULT_SERVER is None:
             cls.DEFAULT_SERVER = SCTFHIRTerminologyServer()
         return cls.DEFAULT_SERVER
+
+    def get_terminology_resource(
+        self,
+        resourceType: Optional[str],
+        *,
+        id: Optional[str] = None,
+        url: Optional[URI] = None,
+    ):
+        return super().get_terminology_resource(resourceType, id=id, url=url)
 
     def get_resource(
         self, resourceType: str, *, id: Optional[str] = None, url: Optional[str] = None

@@ -1,10 +1,11 @@
+from __future__ import annotations
 from typing import List, Optional, Tuple, Union
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr, root_validator, Field
 from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
 from fhirkit.primitive_datatypes import URI
 from fhirkit.elements import CodeableConcept, Coding, Narrative
@@ -20,17 +21,23 @@ class SCTDescendantsFilter(VSFilter):
     op: Literal["is-a"]
     value: str
 
+    def to_url_query(self):
+        return f"fhir_vs=isa/{self.value}"
+
+    def __repr__(self) -> str:
+        return f"concept is-a {self.value}"
+
 
 class SCTECLFilter(VSFilter):
     property: Literal["constraint"]
     op: Literal["="]
     value: str
 
+    def to_url_query(self):
+        return f"fhir_vs=ecl/{self.value}"
 
-class SCTImplicitInclude(VSInclude):
-    concept: List = []
-    valueSetList = []
-    filter: Tuple[Union[SCTDescendantsFilter, SCTECLFilter]]
+    def __repr__(self) -> str:
+        return f"constraint = {self.value}"
 
 
 class SCTImplicitCompose(VSCompose):
@@ -150,3 +157,25 @@ class SCTImplicitValueSet(ValueSet):
                 url, codeableConcept=code
             )
         return response.result
+
+
+class SCTImplicitInclude(VSInclude):
+    system: URI = Field("http://snomed.info/sct")
+    concept: List = Field([], const=True)
+    valueSet: List = Field([], const=True)
+    filter: Tuple[Union[SCTDescendantsFilter, SCTECLFilter]]
+
+    def equivalent_url(self):
+        if self.version is not None:
+            return self.version + "?" + self.filter[0].to_url_query()
+        return self.system + "?" + self.filter[0].to_url_query()
+
+    def to_valueset(self) -> SCTImplicitValueSet:
+        return SCTImplicitValueSet(url=self.equivalent_url())
+
+    def __repr__(self):
+        return repr(self.filter[0])
+
+
+SCTImplicitCompose.update_forward_refs()
+SCTImplicitValueSet.update_forward_refs()
