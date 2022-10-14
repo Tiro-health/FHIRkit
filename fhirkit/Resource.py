@@ -43,6 +43,9 @@ class Meta(BaseModel):
     profile: List[URI] = []
     security: List[Coding] = []
     tag: List[Coding] = []
+    #Custom fields
+    title: Optional[str] = Field(None, repr=False)
+    pathway: Optional[str] = Field(None, repr=False)
 
 
 class Resource(BaseModel):
