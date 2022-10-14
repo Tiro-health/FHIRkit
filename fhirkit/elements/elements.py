@@ -1,6 +1,8 @@
 from __future__ import annotations
 from functools import total_ordering
 import itertools
+from mimetypes import suffix_map
+from sys import prefix
 from typing import Any, ForwardRef, Optional, Sequence, Union
 
 try:
@@ -208,3 +210,63 @@ class ContactPoint(Element):
 class ContactDetail(Element):
     name: Optional[str]
     telecom: Sequence[ContactPoint] = []
+
+
+HumanNameUse = Literal[
+    "usual",
+    "official",
+    "temp",
+    "nickname",
+    "anonymous",
+    "old",
+    "maiden",
+]
+
+class HumanName(Element):
+    use: HumanNameUse = Field("use", repr=True)
+    text: str = None
+    family: Optional[str] = None
+    given: Optional[str] = None
+    prefix: Optional[str] = None
+    suffix: Optional[str] = None
+    period: Optional[Period] = None
+
+
+AddressUse = Literal[
+    "home",
+    "work",
+    "temp",
+    "old",
+    "billing - purpose of this address",
+]
+
+AddressType = Literal[
+    "postal",
+    "physical",
+    "both"
+]
+class Address(Element):
+    use: AddressUse = Field("home", repr=True)
+    type: AddressType = Field("postal", repr=True)
+    text: str = None
+    line: Optional[str] = None
+    city: Optional[str] = None
+    district: Optional[str] = None
+    state: Optional[str] = None
+    postalCode: Optional[str] = None
+    country: Optional[str] = None
+    period: Optional[Period] = Field(None, exclude=True)
+
+
+class Annotation(Element):
+    author: Optional[Reference] = Field(None, exclude=True)
+    time: Optional[dateTime] = Field(None, exclude=True)
+    text: str = None
+
+class Hospitalization(Element):
+    preAdmissionIdentifier: Optional[Identifier] = None
+    origin: Optional[Reference] = Field(None, repr=True)
+    admitSource: Optional[CodeableConcept] = None
+    reAdmission: Optional[CodeableConcept] = None
+    destination: Optional[Reference] = None
+    dischargeDisposition: Optional[CodeableConcept] = None
