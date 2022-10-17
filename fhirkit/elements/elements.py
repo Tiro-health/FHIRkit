@@ -213,6 +213,9 @@ class ContactDetail(Element):
     telecom: Sequence[ContactPoint] = []
 
 
+AdministrativeGender = Literal["male", "female", "other", "unknown"]
+
+
 HumanNameUse = Literal[
     "usual",
     "official",
@@ -262,16 +265,6 @@ class Annotation(Element):
     author: Optional[Reference] = Field(None, exclude=True)
     time: Optional[dateTime] = Field(None, exclude=True)
     text: str = Field(...)
-
-
-class Hospitalization(Element):
-    preAdmissionIdentifier: Optional[Identifier] = None
-    origin: Optional[Reference] = Field(None, repr=True)
-    admitSource: Optional[CodeableConcept] = None
-    reAdmission: Optional[CodeableConcept] = None
-    destination: Optional[Reference] = None
-    dischargeDisposition: Optional[CodeableConcept] = None
-
 
 class SignatureType(ConstrainedList):
     item_type = Coding
