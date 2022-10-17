@@ -1,14 +1,14 @@
-from typing import List, Optional
+from typing import List, Optional, Sequence
+
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # type: ignore
 
-
-from pydantic import confloat, Field, AnyUrl
+from pydantic import Field, ConstrainedFloat
 from fhirkit.primitive_datatypes import URI, Instant
-from fhirkit.elements import BackboneElement, Identifier
+from fhirkit.elements import BackboneElement, Identifier, Signature
 from fhirkit.Resource import Resource
 
 BundleType = Literal[
@@ -26,14 +26,19 @@ BundleType = Literal[
 BundleSearchMode = Literal["match", "include", "outcome"]
 
 
-class BundleLink(BackboneElement):
-    relation: str
-    url: URI
+class BundleSearchScore(ConstrainedFloat):
+    ge = 0
+    le = 1
 
 
 class BundleSearch(BackboneElement):
     mode: Optional[BundleSearchMode]
-    score: confloat(ge=0, le=1)
+    score: BundleSearchScore
+
+
+class BundleLink(BackboneElement):
+    relation: str
+    url: URI
 
 
 class BundleRequest(BackboneElement):
@@ -65,4 +70,6 @@ class Bundle(Resource):
     identifier: Optional[Identifier]
     type: BundleType
     timestamp: Optional[Instant]
+    link: Sequence[BundleLink] = []
     entry: List[BundleEntry]
+    signature: Optional[Signature]

@@ -1,9 +1,12 @@
 from __future__ import annotations
+import warnings
+
+from fhirkit.elements.elements import Reference
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # type: ignore
 from typing import (
     AbstractSet,
     Any,
@@ -12,14 +15,13 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Union,
     Generator,
 )
 from pydantic import Extra, Field, PrivateAttr
-from fhirkit import BaseModel
-from fhirkit.primitive_datatypes import URI, Code, Id, Instant, dateTime
+from fhirkit.BaseModel import BaseModel
+from fhirkit.primitive_datatypes import URI, Code, Id, Instant, dateTime, date
 from fhirkit.elements import (
     AbstractFHIRServer,
     BackboneElement,
@@ -43,9 +45,14 @@ class Meta(BaseModel):
     profile: List[URI] = []
     security: List[Coding] = []
     tag: List[Coding] = []
-    #Custom fields
+    # Custom fields
     title: Optional[str] = Field(None, repr=False)
     pathway: Optional[str] = Field(None, repr=False)
+
+
+InclusionExclusion = Union[AbstractSet[Union[int, str]], Mapping[Union[int, str], Any]]
+AbstractSetIntStr = AbstractSet[Union[int, str]]
+MappingIntStrAny = Mapping[Union[int, str], Any]
 
 
 class Resource(BaseModel):
@@ -57,15 +64,17 @@ class Resource(BaseModel):
     implicitRules: Optional[URI] = Field(None, repr=False)
     language: Optional[Code] = Field(None, repr=False)
 
+    def __str__(self) -> str:
+        text = self.resourceType
+        if self.id:
+            text += f"/{self.id}"
+        return text
+
     def record(
         self,
         by_alias: bool = False,
-        include: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
-        exclude: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
+        include: InclusionExclusion = None,
+        exclude: InclusionExclusion = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_empty: bool = True,
@@ -84,18 +93,25 @@ class Resource(BaseModel):
     def dict(
         self,
         *,
+        include: Union[AbstractSetIntStr, MappingIntStrAny] = None,
+        exclude: Union[AbstractSetIntStr, MappingIntStrAny] = None,
         by_alias: bool = False,
-        include: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
-        exclude: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
+        skip_defaults: bool = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         exclude_empty: bool = False,
     ) -> Dict[str, Any]:
+        """
+        Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
+
+        """
+        if skip_defaults is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}.dict(): "skip_defaults" is deprecated and replaced by "exclude_unset"',
+                DeprecationWarning,
+            )
+            exclude_unset = skip_defaults
         return dict(
             super()._iter(
                 True,
@@ -110,12 +126,13 @@ class Resource(BaseModel):
         )
 
     def _assemble_key_recursively(
-        self, obj: Union[Element, Resource]
-    ) -> Generator[Tuple[Tuple[str, ...], Element]]:
+        self,
+        obj,
+    ) -> Generator[Tuple[Tuple[str, ...], Element], None, None]:
         if isinstance(obj, (tuple, list)):
-            for key, value in enumerate(obj):
+            for key_int, value in enumerate(obj):
                 for childKeys, childValue in self._assemble_key_recursively(value):
-                    yield (key, *childKeys), childValue
+                    yield (str(key_int), *childKeys), childValue
         elif isinstance(obj, (BackboneElement, Resource, Generator, Period, Range)):
             for key, value in obj:
                 for childKeys, childValue in self._assemble_key_recursively(value):
@@ -126,6 +143,11 @@ class Resource(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         extra = Extra.allow
+
+    def get_references(self):
+        for k, v in self._iter():
+            if isinstance(v, Reference):
+                yield k, v
 
 
 class DomainResource(Resource):

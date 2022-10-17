@@ -1,18 +1,19 @@
 from __future__ import annotations
 from functools import total_ordering
 import itertools
-from mimetypes import suffix_map
-from sys import prefix
-from typing import Any, ForwardRef, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Union
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # type: ignore
 
-from pydantic import AnyUrl, Field
-from fhirkit import BaseModel
-from fhirkit.primitive_datatypes import URI, Code, XHTML, dateTime
+from pydantic import AnyUrl, Field, ConstrainedList
+
+if TYPE_CHECKING:
+    from fhirkit.Resource import Resource
+from fhirkit.BaseModel import BaseModel
+from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime
 from fhirkit.Server import AbstractFHIRServer
 
 
@@ -60,6 +61,8 @@ class AbstractCoding(Element):
 
 @total_ordering
 class Coding(AbstractCoding):
+    system: URI
+
     def __repr__(self) -> str:
         if self.display:
             return f'"{self.display}" {self.system}|{self.code}'
@@ -70,7 +73,7 @@ class Coding(AbstractCoding):
         return self.display or f"{self.system}|{self.code}"
 
     def fsh(self, include_display: bool = False, include_version: bool = True):
-        token = self.system
+        token: str = self.system
         if self.version is not None and include_version:
             token += "|" + self.version
         token += "#" + self.code
@@ -78,7 +81,7 @@ class Coding(AbstractCoding):
             token += ' "{self.display}"'
         return token
 
-    def __eq__(self, other: AbstractCoding) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, AbstractCoding):
             return self.system == other.system and self.code == other.code
         return False
@@ -90,9 +93,6 @@ class Coding(AbstractCoding):
         return hash((self.system, self.code))
 
 
-CodeableConcept = ForwardRef("CodeableConcept")
-
-
 class CodeableConcept(BaseModel):
     """FHIR Terminology based model for CodeableConcepts"""
 
@@ -101,9 +101,9 @@ class CodeableConcept(BaseModel):
     active: Optional[bool] = None
 
     def __str__(self) -> str:
-        return self.text
+        return self.text or super().__str__()
 
-    def __eq__(self, other: Union[CodeableConcept, Coding]) -> bool:
+    def __eq__(self, other: object) -> bool:
 
         if isinstance(other, Coding):
             result = any(other == c for c in self.coding)
@@ -137,9 +137,10 @@ class Reference(Element):
             return self.type + "/" + self.reference
         return super().__repr__()
 
-    def resolve(self, store: AbstractFHIRServer):
+    def resolve(self, store: AbstractFHIRServer) -> Union["Resource", None]:
         if self.reference:
             return store[self.reference.replace("urn:uuid:", "")]
+        return None
 
 
 class Identifier(Element):
@@ -222,14 +223,15 @@ HumanNameUse = Literal[
     "maiden",
 ]
 
+
 class HumanName(Element):
-    use: HumanNameUse = Field("use", repr=True)
-    text: str = None
-    family: Optional[str] = None
-    given: Optional[str] = None
-    prefix: Optional[str] = None
-    suffix: Optional[str] = None
-    period: Optional[Period] = None
+    use: Optional[HumanNameUse] = Field(None, repr=True)
+    text: Optional[str] = Field(None, repr=True)
+    family: Optional[str] = Field(None, repr=True)
+    given: Sequence[str] = Field([], repr=True)
+    prefix: Sequence[str] = Field([], repr=True)
+    suffix: Sequence[str] = Field([], repr=True)
+    period: Optional[Period] = Field(None, repr=True)
 
 
 AddressUse = Literal[
@@ -240,28 +242,27 @@ AddressUse = Literal[
     "billing - purpose of this address",
 ]
 
-AddressType = Literal[
-    "postal",
-    "physical",
-    "both"
-]
+AddressType = Literal["postal", "physical", "both"]
+
+
 class Address(Element):
     use: AddressUse = Field("home", repr=True)
     type: AddressType = Field("postal", repr=True)
-    text: str = None
-    line: Optional[str] = None
-    city: Optional[str] = None
-    district: Optional[str] = None
-    state: Optional[str] = None
-    postalCode: Optional[str] = None
-    country: Optional[str] = None
+    text: Optional[str] = Field(None, repr=True)
+    line: Sequence[str] = Field([], repr=True)
+    city: Optional[str] = Field(None, repr=True)
+    district: Optional[str] = Field(None, repr=True)
+    state: Optional[str] = Field(None, repr=True)
+    postalCode: Optional[str] = Field(None, repr=True)
+    country: Optional[str] = Field(None, repr=True)
     period: Optional[Period] = Field(None, exclude=True)
 
 
 class Annotation(Element):
     author: Optional[Reference] = Field(None, exclude=True)
     time: Optional[dateTime] = Field(None, exclude=True)
-    text: str = None
+    text: str = Field(...)
+
 
 class Hospitalization(Element):
     preAdmissionIdentifier: Optional[Identifier] = None
@@ -270,3 +271,20 @@ class Hospitalization(Element):
     reAdmission: Optional[CodeableConcept] = None
     destination: Optional[Reference] = None
     dischargeDisposition: Optional[CodeableConcept] = None
+
+
+class SignatureType(ConstrainedList):
+    item_type = Coding
+    min_items = 1
+    unique_items = True
+    __args__ = (Coding,)
+
+
+class Signature(Element):
+    type: SignatureType
+    when: Instant
+    who: Reference
+    onBehalfOf: Optional[Reference] = None
+    targetFormat: Optional[Code] = None
+    sigFormat: Optional[Code] = None
+    data: Optional[bytes]

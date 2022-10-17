@@ -192,8 +192,11 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         resources = []
         if isinstance(path, str):
             path = Path(path)
-        for fpath in traverse(path, lambda p: p.suffix == ".ndjson"):
-            for i, line in enumerate(open(fpath, "r")):
+        target_paths = list(traverse(path, lambda p: p.suffix == ".ndjson"))
+        for fpath in tqdm(target_paths):
+            for i, line in tqdm(
+                enumerate(open(fpath, "r")), desc=str(path), leave=True
+            ):
                 try:
                     resources.append(parse_json_as_resource(line))
                 except ValidationError:
@@ -206,14 +209,15 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         return cls(resources)
 
     @classmethod
-    def load_bundles(cls, path: Path):
+    def load_bundles(cls, path: Path, fail_when_invalid: bool = False):
         """Load resources from a directory containing JSON files with FHIR Bundle resources per Patients."""
         resources = []
         if isinstance(path, str):
             path = Path(path)
-        for fpath in traverse(path, lambda p: p.suffix == ".json"):
+        target_paths = list(traverse(path, lambda p: p.suffix == ".json"))
+        for fpath in tqdm(target_paths):
             bundle: Bundle = parse_file_as(Bundle, fpath)
-            for i, entry in tqdm(enumerate(bundle.entry), desc=str(fpath)):
+            for i, entry in tqdm(enumerate(bundle.entry), desc=str(fpath), leave=True):
                 if entry.resource is None:
                     LOGGER.warning(
                         "Entry %d in Bundle with path %s has no resoruce.",
@@ -233,4 +237,6 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
                         str(fpath.absolute()),
                         exc_info=True,
                     )
+                    if fail_when_invalid:
+                        raise StopIteration("Invalid resource.")
         return cls(resources)

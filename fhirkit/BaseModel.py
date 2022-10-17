@@ -10,6 +10,7 @@ from typing import (
     Union,
     cast,
 )
+import warnings
 import pydantic
 
 from pydantic.utils import ROOT_KEY
@@ -30,12 +31,8 @@ class BaseModel(pydantic.BaseModel):
         self,
         to_dict: bool = False,
         by_alias: bool = False,
-        include: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
-        exclude: Union[
-            AbstractSet[Union[int, str]], Mapping[Union[int, str], any]
-        ] = None,
+        include: Union[AbstractSetIntStr, MappingIntStrAny] = None,
+        exclude: Union[AbstractSetIntStr, MappingIntStrAny] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
@@ -77,11 +74,22 @@ class BaseModel(pydantic.BaseModel):
         include: Union[AbstractSetIntStr, MappingIntStrAny] = None,
         exclude: Union[AbstractSetIntStr, MappingIntStrAny] = None,
         by_alias: bool = False,
+        skip_defaults: bool = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         exclude_empty: bool = True,
     ) -> DictStrAny:
+        """
+        Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
+
+        """
+        if skip_defaults is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}.dict(): "skip_defaults" is deprecated and replaced by "exclude_unset"',
+                DeprecationWarning,
+            )
+            exclude_unset = skip_defaults
         return dict(
             self._iter(
                 to_dict=True,
