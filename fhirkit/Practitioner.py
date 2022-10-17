@@ -21,9 +21,5 @@ class Practitioner(DomainResource):
     name: Sequence[HumanName] = Field([], repr=True)
     telecom: Sequence[ContactPoint] = Field([], repr=True)
     address: Sequence[Address] = Field([], repr=True)
-    gender: Optional[Literal["male", "female", "other", "unknown"]] = Field(
-        None, repr=True
-    )
+    gender: Optional[Literal["male", "female", "other", "unknown"]] = Field(None, repr=True)
     birthDate: Optional[dateTime] = Field(None, repr=True)
-    # Custom fields
-    hospital: Optional[str] = Field(None, repr=True)

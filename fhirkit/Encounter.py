@@ -2,7 +2,7 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal  # type: ignore
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 from pydantic import Field
 
 
@@ -11,8 +11,8 @@ from fhirkit.elements import (
     CodeableConcept,
     Reference,
     Identifier,
-    Hospitalization,
 )
+from fhirkit.elements.elements import BackboneElement
 
 
 EncounterStatus = Literal[
@@ -40,16 +40,23 @@ EncounterClass = Literal[
 ]
 
 
+class EncounterHospitalization(BackboneElement):
+    preAdmissionIdentifier: Optional[Identifier] = Field(None, repr=True)
+    origin: Optional[Reference] = Field(None, repr=True)
+    admitSource: Optional[CodeableConcept] = Field(None, repr=True)
+    reAdmission: Optional[CodeableConcept] = Field(None, repr=True)
+    destination: Optional[Reference] = Field(None, repr=True)
+    dischargeDisposition: Optional[CodeableConcept] = Field(None, repr=True)
+
 class Encounter(DomainResource):
     resourceType: Literal["Encounter"] = Field("Encounter", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
-    status: EncounterStatus = Field("completed", repr=True)
-    subject: Optional[Reference] = None
-    reasonCode: Sequence[CodeableConcept] = Field([], repr=True)
-    reasonReference: Optional[Reference] = None
-    type: Sequence[CodeableConcept] = Field([], repr=True)
-    # TODO add http://hl7.org/fhir/ValueSet/all-time-units
-    length: Optional[str] = None
-    hospitalization: Optional[Hospitalization] = Field(None, exclude=True)
+    status: EncounterStatus = Field("planned", repr=True)
+    subject: Optional[List[Reference]] = Field(None, repr=True)
+    reasonCode: Optional[List[CodeableConcept]] = Field([], repr=True)
+    reasonReference: Optional[List[Reference]] = Field([], repr=True)
+    type: Optional[List[CodeableConcept]] = Field([], repr=True)
+    length: Optional[str] = Field(None, repr=True)
+    hospitalization: Optional[EncounterHospitalization] = Field(None, exclude=True)
     class_: EncounterClass = Field("AMB", repr=True)
-    priority: Optional[CodeableConcept] = None
+    priority: Optional[CodeableConcept] = Field(None, repr=True)
