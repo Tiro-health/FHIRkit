@@ -155,6 +155,9 @@ class Resource(BaseModel):
             if isinstance(v, Reference):
                 yield k, v
 
+    def to_reference(self):
+        return Reference(type=self.resourceType, reference=f"{self.resourceType}/{self.id}")
+
 
 class DomainResource(Resource):
     text: Optional[Narrative] = Field(None, repr=False)
