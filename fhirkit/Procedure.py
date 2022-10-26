@@ -5,8 +5,15 @@ except ImportError:
 from typing import Optional, Union, List, Sequence
 from pydantic import Field, validator
 from fhirkit.choice_type import deterimine_choice_type, ChoiceType
-from fhirkit.Resource import DomainResource
-from fhirkit.elements import CodeableConcept, Identifier, Period, Reference, Annotation, BackboneElement
+from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
+from fhirkit.elements import (
+    CodeableConcept,
+    Identifier,
+    Period,
+    Reference,
+    Annotation,
+    BackboneElement,
+)
 from fhirkit.primitive_datatypes import dateTime
 from fhirkit.Practitioner import Practitioner
 from fhirkit.Organization import Organization
@@ -23,12 +30,14 @@ ProcedureStatus = Literal[
     "unknown",
 ]
 
+
 class ProcedurePerformer(BackboneElement):
     function: Optional[CodeableConcept] = Field(None, repr=True)
     actor: Reference
     onBehalfOf: Optional[Organization] = Field(None, repr=True)
 
-class Procedure(DomainResource):
+
+class Procedure(DomainResource, ResourceWithMultiIdentifier):
     resourceType: Literal["Procedure"] = Field("Procedure", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
     partOf: Optional[List[Reference]] = Field([], repr=True)
@@ -52,4 +61,9 @@ class Procedure(DomainResource):
 
     @validator("performed", pre=True, always=True, allow_reuse=True)
     def validate_performed(cls, v, values, field):
-        return deterimine_choice_type(cls,v,values,field,)
+        return deterimine_choice_type(
+            cls,
+            v,
+            values,
+            field,
+        )

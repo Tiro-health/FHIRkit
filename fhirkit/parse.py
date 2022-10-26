@@ -1,64 +1,18 @@
-from typing import Union
+from importlib.resources import Resource
+from typing import List, Union
+import typing
 
 
 try:
     from typing import Annotated
 except ImportError:
-    from typing_extensions import Annotated
+    from typing_extensions import Annotated  # type: ignore
 
 from pydantic import Field, parse_obj_as
-from fhirkit import (
-    Observation,
-    Procedure,
-    Condition,
-    Immunization,
-    DiagnosticReport,
-    DocumentReference,
-    MedicationAdministration,
-    Medication,
-    MedicationRequest,
-    Encounter,
-    CarePlan,
-    CareTeam,
-    Practitioner,
-    Provenance,
-    Organization,
-    AllergyIntolerance,
-    Location,
-    PractitionerRole,
-    ImagingStudy,
-    Patient,
-    Device,
-    MedicationStatement,
-    SupplyDelivery,
-)
+from fhirkit.Resource import RESOURCE_MODELS
 
 AnyPatientResource = Annotated[
-    Union[
-        Observation,
-        Procedure,
-        Condition,
-        Immunization,
-        DiagnosticReport,
-        DocumentReference,
-        MedicationRequest,
-        Encounter,
-        CarePlan,
-        CareTeam,
-        Practitioner,
-        Organization,
-        AllergyIntolerance,
-        Location,
-        ImagingStudy,
-        PractitionerRole,
-        Patient,
-        MedicationStatement,
-        MedicationAdministration,
-        Medication,
-        Device,
-        Provenance,
-        SupplyDelivery,
-    ],
+    Union[tuple(RESOURCE_MODELS)],
     Field(discriminator="resourceType"),
 ]
 

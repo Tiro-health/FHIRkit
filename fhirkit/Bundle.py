@@ -6,10 +6,10 @@ try:
 except ImportError:
     from typing_extensions import Literal  # type: ignore
 
-from pydantic import Field, ConstrainedFloat
+from pydantic import Field, ConstrainedFloat, Field
 from fhirkit.primitive_datatypes import URI, Instant
 from fhirkit.elements import BackboneElement, Identifier, Signature
-from fhirkit.Resource import Resource
+from fhirkit.Resource import Resource, ResourceWithMultiIdentifier
 
 BundleType = Literal[
     "document",
@@ -67,9 +67,9 @@ class BundleEntry(BackboneElement):
 
 class Bundle(Resource):
     resourceType = Field("Bundle", const=True)
-    identifier: Optional[Identifier]
+    identifier: Optional[Identifier] = None
     type: BundleType
-    timestamp: Optional[Instant]
+    timestamp: Optional[Instant] = None
     link: Sequence[BundleLink] = []
     entry: List[BundleEntry]
-    signature: Optional[Signature]
+    signature: Optional[Signature] = None

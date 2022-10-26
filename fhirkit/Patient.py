@@ -15,8 +15,9 @@ from fhirkit.elements import (
     ContactDetail,
     ContactPoint,
     Address,
-    AdministrativeGender
+    AdministrativeGender,
 )
+
 
 class Patient(DomainResource):
     resourceType: Literal["Patient"] = Field("Patient", const=True)

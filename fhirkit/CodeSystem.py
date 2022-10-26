@@ -1,6 +1,6 @@
 from __future__ import annotations
 from email.generator import Generator
-from typing import Any, ClassVar, Optional, Sequence, Set, TypeVar, Union
+from typing import Any, ClassVar, Iterable, Optional, Sequence, Set, TypeVar, Union
 
 from fhirkit.choice_type import ChoiceType
 
@@ -41,9 +41,7 @@ class CSConceptProperty(BackboneElement):
     valueCoding: Optional[Coding] = Field(None, exclude=True)
     valueDateTime: Optional[dateTime] = Field(None, exclude=True)
     valueDecimal: Optional[float] = Field(None, exclude=True)
-    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = ChoiceType(
-        None
-    )
+    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = ChoiceType(None)
 
     @validator("value", pre=True, always=True, allow_reuse=True)
     def validate_value(cls, v, values, field):
@@ -86,7 +84,7 @@ C = TypeVar("C", bound=CSConcept)
 
 
 def traverse_concepts(
-    s: Sequence[C],
+    s: Iterable[C],
 ) -> Generator[C, None, None]:
     for c in s:
         yield c
@@ -113,9 +111,7 @@ class CodeSystem(CanonicalResource):
     copyright: Optional[str]
     caseSensitive: Optional[bool]
     valueSet: Optional[URI]
-    hierarchyMeaning: Optional[
-        Literal["grouped-by", "is-a", "part-of", "classified-with"]
-    ]
+    hierarchyMeaning: Optional[Literal["grouped-by", "is-a", "part-of", "classified-with"]]
     compositional: Optional[bool]
     versionNeeded: Optional[bool]
     content: Literal["not-present", "example", "fragment", "complete", "supplement"]
@@ -138,15 +134,11 @@ class CodeSystem(CanonicalResource):
 
         if self.name is None:
             raise RuntimeWarning("The CodeSystem has no name to use as display name")
-        assert (
-            code is not None or coding is not None
-        ), "At least a code or coding is needed to lookup."
+        assert code is not None or coding is not None, "At least a code or coding is needed to lookup."
         for concept in traverse_concepts(self.concept):
 
             if (concept.code == code) or (
-                coding
-                and concept.code == coding.code
-                and concept.display == coding.display
+                coding and concept.code == coding.code and concept.display == coding.display
             ):
                 return CSConceptLookup(
                     name=self.name,
@@ -161,11 +153,9 @@ class CodeSystem(CanonicalResource):
                     ),
                 )
 
-        raise CodeLookupError(
-            f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})"
-        )
+        raise CodeLookupError(f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})")
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[CSConcept]:
         yield from traverse_concepts(self.concept)
 
     def __len__(self):

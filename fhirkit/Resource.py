@@ -54,8 +54,11 @@ InclusionExclusion = Union[AbstractSet[Union[int, str]], Mapping[Union[int, str]
 AbstractSetIntStr = AbstractSet[Union[int, str]]
 MappingIntStrAny = Mapping[Union[int, str], Any]
 
+RESOURCE_MODELS = []
+
 
 class Resource(BaseModel):
+
     _fhir_server: Optional[AbstractFHIRServer] = PrivateAttr(None)
 
     resourceType: str
@@ -63,6 +66,9 @@ class Resource(BaseModel):
     meta: Optional[Meta] = Field(None, repr=False)
     implicitRules: Optional[URI] = Field(None, repr=False)
     language: Optional[Code] = Field(None, repr=False)
+
+    def __init_subclass__(cls) -> None:
+        RESOURCE_MODELS.append(cls)
 
     def __str__(self) -> str:
         text = self.resourceType
@@ -163,7 +169,11 @@ class DomainResource(Resource):
             return repr(self)
 
 
-class CanonicalResource(DomainResource):
+class ResourceWithMultiIdentifier(Resource):
+    identifier: Sequence[Identifier] = []
+
+
+class CanonicalResource(DomainResource, ResourceWithMultiIdentifier):
     url: Optional[URI] = None
     identifier: Sequence[Identifier] = []
     version: Optional[str] = None
