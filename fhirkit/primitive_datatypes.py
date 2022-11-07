@@ -2,7 +2,13 @@ from __future__ import annotations
 from datetime import datetime, date, time
 from pathlib import Path
 import re
-from typing import Annotated, Optional, Union, no_type_check
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
+from typing import Optional, Union, no_type_check
 from pydantic import ConstrainedStr, AnyUrl, Field
 
 

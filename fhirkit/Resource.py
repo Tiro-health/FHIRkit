@@ -26,7 +26,6 @@ from fhirkit.elements import (
     AbstractFHIRServer,
     BackboneElement,
     CodeableConcept,
-    ContactDetail,
     Element,
     Identifier,
     Narrative,
@@ -36,6 +35,7 @@ from fhirkit.elements import (
     Range,
     UsageContext,
 )
+from fhirkit.metadata_types import ContactDetail
 
 
 class Meta(BaseModel):

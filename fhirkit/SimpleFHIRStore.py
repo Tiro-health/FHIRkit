@@ -74,7 +74,8 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
     def __len__(self):
         return len(self._resources)
 
-    def get_resource_by_canonical(self, reference: canonical) -> "Resource":
+    def get_resource_by_canonical(self, reference: Union[canonical, str]) -> "Resource":
+        reference = parse_obj_as(canonical, reference)
         version = reference.version
         uri = reference.uri
         for r in self._resources:
@@ -107,8 +108,9 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         )
 
     def get_resource_by_literal(
-        self, reference: literal, resourceType: Optional[str] = None
+        self, reference: Union[literal, str], resourceType: Optional[str] = None
     ) -> "Resource":
+        reference = parse_obj_as(literal, reference)
         if isinstance(reference, AbsoluteURL):
             if self.base_url is not None:
                 if reference.host != self.base_url.host:
@@ -148,6 +150,9 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         raise ResourceNotFoundError(
             f"Couldn't resolver {resourceType} resource with identifier={identifier}"
         )
+
+    def __getitem__(self, key):
+        return self.get_resource_by_literal(key)
 
     def filter(self, expr: Callable[[R], bool]):
         return SimpleFHIRStore(

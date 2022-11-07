@@ -10,9 +10,10 @@ except ImportError:
 
 from pydantic import AnyUrl, Field, ConstrainedList
 
+from fhirkit.BaseModel import BaseModel
+
 if TYPE_CHECKING:
     from fhirkit.Resource import Resource
-from fhirkit.BaseModel import BaseModel
 from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime, literal
 from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 
@@ -230,11 +231,6 @@ class ContactPoint(Element):
     value: Optional[str] = None
     use: Optional[Literal["home", "work", "temp", "old", "mobile"]] = None
     period: Optional[Period] = None
-
-
-class ContactDetail(Element):
-    name: Optional[str]
-    telecom: Sequence[ContactPoint] = []
 
 
 AdministrativeGender = Literal["male", "female", "other", "unknown"]

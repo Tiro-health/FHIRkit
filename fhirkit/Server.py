@@ -32,7 +32,7 @@ class AbstractFHIRServer(ABC):
         return self._base_url
 
     @abc.abstractmethod
-    def get_resource_by_canonical(self, reference: canonical) -> "Resource":
+    def get_resource_by_canonical(self, reference: Union[canonical, str]) -> "Resource":
         """Resolves a canonical reference into a resource or raises a ResourceNotFound exception.
         More info on canonical references: https://build.fhir.org/references.html#canonical"""
         # check if urn or absolute url

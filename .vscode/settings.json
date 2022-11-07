@@ -8,5 +8,5 @@
   "restructuredtext.confPath": "${workspaceFolder}/docs",
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
-  "python.analysis.typeCheckingMode": "off"
+  "python.analysis.diagnosticMode": "workspace"
 }

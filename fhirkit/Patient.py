@@ -12,11 +12,10 @@ from fhirkit.elements import (
     HumanName,
     Identifier,
     Reference,
-    ContactDetail,
-    ContactPoint,
     Address,
     AdministrativeGender,
 )
+from fhirkit.metadata_types import ContactDetail, ContactPoint
 
 
 class Patient(DomainResource):
