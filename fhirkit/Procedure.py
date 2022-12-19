@@ -26,7 +26,7 @@ ProcedureStatus = Literal[
 class ProcedurePerformer(BackboneElement):
     function: Optional[CodeableConcept] = Field(None, repr=True)
     actor: Reference
-    onBehalfOf: Optional[Organization] = Field(None, repr=True)
+    onBehalfOf: Optional[Reference] = Field(None, repr=True)
 
 class Procedure(DomainResource):
     resourceType: Literal["Procedure"] = Field("Procedure", const=True)
@@ -49,7 +49,8 @@ class Procedure(DomainResource):
     performed: Optional[Union[dateTime, Period, str, int]] = ChoiceType(None)
     asserter: Optional[Practitioner] = Field(None, repr=True)
     performer: Optional[Sequence[ProcedurePerformer]] = Field([], repr=True)
-
+    location: Optional[Reference] = Field(None, repr=True)
+   
     @validator("performed", pre=True, always=True, allow_reuse=True)
     def validate_performed(cls, v, values, field):
         return deterimine_choice_type(cls,v,values,field,)
