@@ -1,14 +1,33 @@
 import logging
 from pathlib import Path
-from typing import Callable, Generator, Generic, Optional, Sequence, TypeVar, Union
+import resource
+from typing import (
+    Callable,
+    Generator,
+    Generic,
+    List,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
+from uuid import uuid5, uuid4
 
 from pydantic import HttpUrl, ValidationError, parse_file_as, parse_obj_as
-from fhirkit.elements.elements import CodeableConcept, Coding
-from fhirkit.primitive_datatypes import URI, Code
+from fhirkit.elements.elements import CodeableConcept, Coding, Reference, Identifier
+from fhirkit.primitive_datatypes import (
+    URI,
+    AbsoluteURL,
+    Code,
+    RelativeURL,
+    URN,
+    canonical,
+    literal,
+)
 from fhirkit.Bundle import Bundle
 from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 from fhirkit.TerminologyServer import AbstractFHIRTerminologyServer
-from fhirkit.Resource import Resource
+from fhirkit.Resource import Resource, ResourceWithMultiIdentifier
 from fhirkit.parse import AnyPatientResource, parse_json_as_resource
 from tqdm import tqdm
 
@@ -38,7 +57,9 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
     """Simple FHIR Server holds a list of resources in memory. It can be initialised based on bulk export directory."""
 
     def __init__(
-        self, resources: Sequence[R], base_url: Optional[Union[str, HttpUrl]] = None
+        self,
+        resources: Sequence[R] = [],
+        base_url: Optional[Union[str, HttpUrl]] = None,
     ) -> None:
         self._resources = list(resources)
         super().__init__(base_url)
@@ -58,34 +79,108 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
             [r for r in self.iter() if expr(r)], base_url=self.base_url
         )
 
-    def get_resource(
-        self,
-        resourceType: Optional[str],
-        *,
-        id: Optional[str] = None,
-        url: Optional[str] = None,
-    ):
-        if url is not None and self.base_url is not None:
-            assert url.startswith(self.base_url), (
-                "Can't resolve a resource that is not managed by this server (base URL=%s)"
-                % self.base_url,
-                url,
-            )
-            *_, resourceType, id = url.split("/")
-        if id is not None:
-            assert self._resources is not None
-            for r in self._resources:
-                if (
-                    r.resourceType == resourceType or resourceType is None
-                ) and r.id == id:
-                    return r
-        if id is None and url is None:
-            raise RuntimeError(
-                "At least an id or url must be given to be able to identify the requested resource"
-            )
-        t = resourceType or "Resource"
-        raise ResourceNotFoundError(f"{t} with id={id} not found.")
+    def get_resource_by_canonical(self, reference: Union[canonical, str]) -> "Resource":
+        reference = parse_obj_as(canonical, reference)
+        version = reference.version
+        uri = reference.uri
+        for r in self._resources:
+            # skip resources that don't have url field or url doesn't match
 
+            # AVR 20221025 hasattr and getattr is not a good practice, we should use structural typing with
+            # a CanonicalResource as defined in https://build.fhir.org/canonicalresource.html and
+            # use runtime typechecking with a CanonicaResource protocol
+            if not hasattr(r, "url") or getattr(r, "url") != uri:
+                continue
+
+            if version is not None:
+
+                # skip resources that don't have a version field or the version doesn't match
+                if not hasattr(r, "version") or getattr(r, "version") != version:
+                    continue
+
+            return r
+
+        raise ResourceNotFoundError(f"Couldn't resolve canonical reference {reference}")
+
+    def get_resource_by_id(
+        self, resourceId: str, resourceType: Optional[str] = None
+    ) -> "Resource":
+        for r in self._resources:
+            if r.resourceType == resourceType and r.id == resourceId:
+                return r
+        raise ResourceNotFoundError(
+            f"Couldn't find a {resourceType} resource with id={resourceId}"
+        )
+
+    def get_resource_by_literal(
+        self, reference: Union[literal, str], resourceType: Optional[str] = None
+    ) -> "Resource":
+        reference = parse_obj_as(literal, reference)
+        if isinstance(reference, AbsoluteURL):
+            if self.base_url is not None:
+                if reference.host != self.base_url.host:
+                    reference_str = reference.build(
+                        scheme=reference.scheme,
+                        host=reference.host or "",
+                    )
+                    raise ResourceNotFoundError(
+                        f"Can't resolve a resource with different base url. Expected {self.base_url} but received {reference_str}"
+                    )
+                    return
+
+        if isinstance(reference, RelativeURL):
+            return self.get_resource_by_id(
+                reference.resourceId, resourceType=reference.resourceType
+            )
+
+        if isinstance(reference, URN):
+            return self.get_resource_by_id(reference, resourceType=resourceType)
+
+        raise ResourceNotFoundError(
+            f"Couldn't resolve resource given literal uri: {reference}"
+        )
+
+    def get_resource_by_identifier(
+        self, resourceType: str, identifier: "Identifier"
+    ) -> "Resource":
+        for r in self._resources:
+            if r.resourceType != resourceType:
+                continue
+
+            if isinstance(r, ResourceWithMultiIdentifier):
+                for r_identifier in r.identifier:
+                    if r_identifier == identifier and r.resourceType == resourceType:
+                        return r
+
+        raise ResourceNotFoundError(
+            f"Couldn't resolver {resourceType} resource with identifier={identifier}"
+        )
+
+    def __getitem__(self, key):
+        return self.get_resource_by_literal(key)
+
+    def filter(self, expr: Callable[[R], bool]):
+        return SimpleFHIRStore(
+            [r for r in self.iter() if expr(r)], base_url=self.base_url
+        )
+
+    def create_reference(
+        self, resource: R, auto_save_in_store: bool = True
+    ) -> Reference:
+        if auto_save_in_store and resource.id is None:
+            self.put_resource(resource)
+        assert resource.id is not None, "Resource is not known in this store."
+        return Reference(reference=f"{resource.resourceType}/{resource.id}")
+
+    def put_resource(self, resource: R):
+        ## TODO charlotte
+        ## if resource with matching resource.id exists override
+        ## if resource with matching reource.identifier exists raise Error
+        literal_id = uuid4().urn
+        resource.id = literal_id
+        self._resources.append(resource)
+
+    
     def get_terminology_resource(
         self,
         resourceType: Optional[str],
@@ -211,7 +306,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
     @classmethod
     def load_bundles(cls, path: Path, fail_when_invalid: bool = False):
         """Load resources from a directory containing JSON files with FHIR Bundle resources per Patients."""
-        resources = []
+        resources: List[R] = []
         if isinstance(path, str):
             path = Path(path)
         target_paths = list(traverse(path, lambda p: p.suffix == ".json"))
