@@ -9,6 +9,7 @@ from pydantic import Field
 from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
 from fhirkit.elements import (
     CodeableConcept,
+    Coding,
     Reference,
     Identifier,
 )
@@ -59,5 +60,5 @@ class Encounter(DomainResource, ResourceWithMultiIdentifier):
     type: Optional[List[CodeableConcept]] = Field([], repr=True)
     length: Optional[str] = Field(None, repr=True)
     hospitalization: Optional[EncounterHospitalization] = Field(None, exclude=True)
-    class_: EncounterClass = Field("AMB", repr=True)
+    class_: Coding = Field(Coding(code="AMB",system= "http://hl7.org/fhir/v3/ActCode"), repr=True, alias='class')
     priority: Optional[CodeableConcept] = Field(None, repr=True)
