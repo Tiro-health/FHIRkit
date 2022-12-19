@@ -11,6 +11,7 @@ except ImportError:
 from pydantic import Field, validator
 from fhirkit.choice_type import deterimine_choice_type, ChoiceType
 from fhirkit.Resource import DomainResource
+from fhirkit.Patient import Patient
 from fhirkit.primitive_datatypes import Code, time
 from fhirkit.elements import (
     CodeableConcept,
@@ -27,7 +28,17 @@ ValueType = Union[
     str, Quantity, int, CodeableConcept, bool, Range, Ratio, time, datetime, Period
 ]
 
-
+ObservationStatus = Literal[
+    "registered",
+    "preliminary",
+    "final",
+    "amended",
+    "corrected",
+    "cancelled",
+    "enterred-in-error",
+    "unknown",
+    ] 
+    
 class ObservationComponent(BackboneElement):
     code: CodeableConcept
     valueString: Optional[str] = Field(None, exclude=True)
@@ -50,19 +61,19 @@ class Observation(DomainResource):
 
     resourceType: Literal["Observation"] = Field("Observation", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
-    status: Literal[
-        "registered",
-        "preliminary",
-        "final",
-        "amended",
-        "corrected",
-        "cancelled",
-        "enterred-in-error",
-        "unknown",
-    ] = Field("final", repr=True)
+    partOf: Optional[List[Reference]] = Field([], repr=True)
+    status: ObservationStatus = Field("final", repr=True)
     category: Sequence[CodeableConcept] = Field([], repr=True)
-
     code: CodeableConcept = Field(..., repr=True)
+    subject: Optional[Reference]
+    encounter: Optional[Reference]
+    
+    effectivePeriod: Optional[Period] = Field(None, exclude=True)
+    effectiveDateTime: Optional[datetime] = Field(None, exclude=True)
+    effective: Union[datetime, Period] = ChoiceType(None)
+    
+    performer: Optional[Reference]
+    
     valueString: Optional[str] = Field(None, exclude=True)
     valueQuantity: Optional[Quantity] = Field(None, exclude=True)
     valueInteger: Optional[int] = Field(None, exclude=True)
@@ -73,18 +84,10 @@ class Observation(DomainResource):
     valueDateTime: Optional[datetime] = Field(None, exclude=True)
     valuePeriod: Optional[Period] = Field(None, exclude=True)
     value: Optional[ValueType] = ChoiceType(None)
-
-    subject: Optional[Reference]
-    encounter: Optional[Reference]
-
+    
     method: Optional[Code] = Field(None, repr=False)
     derivedFrom: Optional[Reference]
-
     component: List[ObservationComponent] = Field([], repr=True)
-
-    effectivePeriod: Optional[Period] = Field(None, exclude=True)
-    effectiveDateTime: Optional[datetime] = Field(None, exclude=True)
-    effective: Union[datetime, Period] = ChoiceType(None)
 
     @validator("value", pre=True, always=True, allow_reuse=True)
     def validate_value(cls, v, values, field):
