@@ -5,13 +5,12 @@ from typing import List, Optional, Sequence, Union
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # type: ignore
 
 
 from pydantic import Field, validator
 from fhirkit.choice_type import deterimine_choice_type, ChoiceType
-from fhirkit.Resource import DomainResource
-from fhirkit.Patient import Patient
+from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
 from fhirkit.primitive_datatypes import Code, time
 from fhirkit.elements import (
     CodeableConcept,
@@ -57,7 +56,7 @@ class ObservationComponent(BackboneElement):
         return deterimine_choice_type(cls, v, values, field)
 
 
-class Observation(DomainResource):
+class Observation(DomainResource, ResourceWithMultiIdentifier):
 
     resourceType: Literal["Observation"] = Field("Observation", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from functools import total_ordering
 import itertools
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Generic, Optional, Sequence, TypeVar, Union
 
 try:
     from typing import Literal
@@ -10,15 +10,16 @@ except ImportError:
 
 from pydantic import AnyUrl, Field, ConstrainedList
 
+from fhirkit.BaseModel import BaseModel
+
 if TYPE_CHECKING:
     from fhirkit.Resource import Resource
-from fhirkit.BaseModel import BaseModel
-from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime
-from fhirkit.Server import AbstractFHIRServer
+from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime, literal
+from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 
 
 class Element(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     extension: Sequence[Extension] = Field([], repr=False)
 
 
@@ -50,10 +51,10 @@ Element.update_forward_refs()
 class AbstractCoding(Element):
     """FHIR Terminology based model for concepts"""
 
-    display: Optional[str]
+    display: Optional[str] = None
     code: str
-    system: Optional[URI]
-    version: Optional[str]
+    system: Optional[URI] = None
+    version: Optional[str] = None
 
     class Config:
         allow_mutation = False
@@ -124,11 +125,24 @@ class Period(Element):
     end: Optional[dateTime]
 
 
+class UnresolveableReference(ValueError):
+    def __init__(self, reference: Reference, *args) -> None:
+        self.reference = reference
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        return super().__str__()
+
+
 class Reference(Element):
-    reference: Optional[str]
-    type: Optional[URI]
-    identifier: Optional[Identifier]
-    display: Optional[str]
+    reference: Optional[literal] = Field(
+        None,
+        title="Literal reference pointing to a resource with a URL",
+        description="This can be an absolute URL or relative URL (implying the to use the ). Fragments can be used to point to contained resources",
+    )
+    type: Optional[URI] = None
+    identifier: Optional[Identifier] = None
+    display: Optional[str] = None
 
     def __repr__(self) -> str:
         if self.display is not None:
@@ -137,10 +151,14 @@ class Reference(Element):
             return self.type + "/" + self.reference
         return super().__repr__()
 
-    def resolve(self, store: AbstractFHIRServer) -> Union["Resource", None]:
-        if self.reference:
-            return store[self.reference.replace("urn:uuid:", "")]
-        return None
+    def resolve(self, store: AbstractFHIRServer) -> "Resource":
+        assert (
+            self.identifier is not None or self.reference is not None
+        ), "Only references with a valid `identifier` or `reference` attribute can be resolved."
+        try:
+            return store.get_resource_by_reference(self)
+        except ResourceNotFoundError as exc:
+            raise UnresolveableReference(reference=self) from exc
 
 
 class Identifier(Element):
@@ -150,6 +168,11 @@ class Identifier(Element):
     value: Optional[str]
     period: Optional[Period]
     assigner: Optional[Reference]
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, Identifier):
+            return False
+        return __o.system == self.system and __o.value == self.value
 
 
 Identifier.update_forward_refs()
@@ -167,6 +190,8 @@ class Quantity(Element):
         return f"{self.value} {self.unit}"
 
     def unit_as_coding(self):
+        if self.code is None:
+            raise TypeError("Can't convert a unit without code to a coding.")
         return Coding(display=self.unit, code=self.code, system=self.system)
 
     def __repr__(self) -> str:
@@ -206,11 +231,6 @@ class ContactPoint(Element):
     value: Optional[str] = None
     use: Optional[Literal["home", "work", "temp", "old", "mobile"]] = None
     period: Optional[Period] = None
-
-
-class ContactDetail(Element):
-    name: Optional[str]
-    telecom: Sequence[ContactPoint] = []
 
 
 AdministrativeGender = Literal["male", "female", "other", "unknown"]
@@ -265,6 +285,7 @@ class Annotation(Element):
     author: Optional[Reference] = Field(None, exclude=True)
     time: Optional[dateTime] = Field(None, exclude=True)
     text: str = Field(...)
+
 
 class SignatureType(ConstrainedList):
     item_type = Coding

@@ -5,15 +5,17 @@ except ImportError:
 from pydantic import Field
 from typing import Optional, Sequence, List
 
-from fhirkit.Resource import DomainResource
+from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
 from fhirkit.elements import (
     CodeableConcept,
     Identifier,
     ContactPoint,
     Address,
-    Reference
+    Reference,
 )
-class Organization(DomainResource):
+
+
+class Organization(DomainResource, ResourceWithMultiIdentifier):
     resourceType: Literal["Organization"] = Field("Organization", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
     active: Optional[bool] = Field(None, repr=True)
@@ -23,6 +25,3 @@ class Organization(DomainResource):
     telecom: Optional[Sequence[ContactPoint]] = Field([], repr=True)
     address: Optional[Sequence[Address]] = Field([], repr=True)
     partOf: Optional[Reference] = Field(None, repr=True)
-
-
-

@@ -4,7 +4,7 @@ from fhirkit.elements import URI, Code, Coding, CodeableConcept
 from fhirkit.Server import AbstractFHIRServer
 
 
-class AbstractFHIRTerminologyServer(AbstractFHIRServer):
+class AbstractFHIRTerminologyServer:
     @abc.abstractmethod
     def valueset_expand(self, *args, **kwargs):
         raise NotImplementedError()
@@ -19,14 +19,4 @@ class AbstractFHIRTerminologyServer(AbstractFHIRServer):
         coding: Optional[Coding] = None,
         codeableConcept: Optional[CodeableConcept] = None,
     ) -> bool:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def get_terminology_resource(
-        self,
-        resourceType: Optional[str],
-        *,
-        id: Optional[str] = None,
-        url: Optional[URI] = None,
-    ):
         raise NotImplementedError()

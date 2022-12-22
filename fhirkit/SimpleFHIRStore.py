@@ -74,11 +74,6 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
     def __len__(self):
         return len(self._resources)
 
-    def filter(self, expr: Callable[[R], bool]):
-        return SimpleFHIRStore(
-            [r for r in self.iter() if expr(r)], base_url=self.base_url
-        )
-
     def get_resource_by_canonical(self, reference: Union[canonical, str]) -> "Resource":
         reference = parse_obj_as(canonical, reference)
         version = reference.version
@@ -179,46 +174,6 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         literal_id = uuid4().urn
         resource.id = literal_id
         self._resources.append(resource)
-
-    
-    def get_terminology_resource(
-        self,
-        resourceType: Optional[str],
-        *,
-        id: Optional[str] = None,
-        url: Optional[URI] = None,
-    ):
-
-        # ValueSets and CodeSystems have a url that identifies them
-        assert (
-            resourceType in ("ValueSet", "CodeSystem", "ConceptMap")
-            or resourceType is None
-        ), "ResourceType should be either %s or %s " % (
-            "ValueSet",
-            "CodeSystem",
-            "ConceptMap",
-        )
-        try:
-            for resource in self._resources:
-                if (
-                    resource.resourceType in ("ValueSet", "CodeSystem", "ConceptMap"),
-                    resource.url == url
-                    and url is not None
-                    and (resourceType is None or resource.resourceType == resourceType),
-                ):
-                    return resource
-            if id is not None:
-                return super().get_resource(resourceType, id=id)
-        except ResourceNotFoundError:
-            raise
-        except Exception:
-            LOGGER.warning(
-                "Unexpected exception while resolving resource.", exc_info=True
-            )
-            raise ResourceNotFoundError(
-                "Could not resolve resource with resourceType=%s, url=%s, id=%s"
-                % (resourceType, url, id)
-            )
 
     def valueset_expand(self, *args, **kwargs):
         return super().valueset_expand(*args, **kwargs)

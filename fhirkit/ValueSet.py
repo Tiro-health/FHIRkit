@@ -6,7 +6,7 @@ except ImportError:
     from typing_extensions import Literal
 from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import Field
-from fhirkit import BaseModel
+from fhirkit.BaseModel import BaseModel
 from fhirkit.primitive_datatypes import URI, dateTime
 from fhirkit.elements import (
     BackboneElement,

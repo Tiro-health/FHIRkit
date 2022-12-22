@@ -6,7 +6,7 @@ from typing import Optional, Sequence, List
 from pydantic import Field
 
 
-from fhirkit.Resource import DomainResource
+from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
 from fhirkit.elements import (
     CodeableConcept,
     Coding,
@@ -49,7 +49,8 @@ class EncounterHospitalization(BackboneElement):
     destination: Optional[Reference] = Field(None, repr=True)
     dischargeDisposition: Optional[CodeableConcept] = Field(None, repr=True)
 
-class Encounter(DomainResource):
+
+class Encounter(DomainResource, ResourceWithMultiIdentifier):
     resourceType: Literal["Encounter"] = Field("Encounter", const=True)
     identifier: Sequence[Identifier] = Field([], repr=True)
     status: EncounterStatus = Field("planned", repr=True)

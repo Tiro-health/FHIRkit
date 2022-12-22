@@ -1,15 +1,24 @@
 from __future__ import annotations
-from email.generator import Generator
-from typing import Any, ClassVar, Optional, Sequence, Set, TypeVar, Union
+from typing import (
+    Any,
+    ClassVar,
+    Iterable,
+    Optional,
+    Sequence,
+    Set,
+    TypeVar,
+    Union,
+    Generator,
+)
 
 from fhirkit.choice_type import ChoiceType
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # type: ignore
 
-from pydantic import AnyUrl, Field, StrictBool, StrictStr, validator
+from pydantic import Field, StrictBool, StrictStr, validator
 from fhirkit.Resource import CanonicalResource
 from fhirkit.choice_type import deterimine_choice_type
 from fhirkit.elements import (
@@ -82,12 +91,9 @@ class CSConceptLookup(CSConcept):
     name: str
 
 
-C = TypeVar("C", bound=CSConcept)
-
-
 def traverse_concepts(
-    s: Sequence[C],
-) -> Generator[C, None, None]:
+    s: Iterable[CSConcept],
+) -> Generator[CSConcept, None, None]:
     for c in s:
         yield c
         if len(c.concept) > 0:
@@ -165,8 +171,11 @@ class CodeSystem(CanonicalResource):
             f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})"
         )
 
-    def __iter__(self):
+    def iter(self) -> Generator[CSConcept, None, None]:
         yield from traverse_concepts(self.concept)
+
+    def __iter__(self):
+        return self.iter()
 
     def __len__(self):
         if self.count:
@@ -187,4 +196,6 @@ class CodeSystem(CanonicalResource):
 
 
 CodeSystem.update_forward_refs()
+for cs_subclass in CodeSystem.__subclasses__():
+    cs_subclass.update_forward_refs()
 CSConcept.update_forward_refs()

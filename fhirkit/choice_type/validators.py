@@ -1,5 +1,8 @@
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Type
 from pydantic.fields import ModelField
+
+if TYPE_CHECKING:
+    from fhirkit.BaseModel import BaseModel
 
 TYPE_NAME_ALIAS = {
     "str": "string",
@@ -17,7 +20,9 @@ def get_matching_type(value: Any, field: ModelField):
     raise TypeError(f"{value} doesn't match any of the specified types ", field.type_)
 
 
-def deterimine_choice_type(cls, v: Any, values: Dict[str, Any], field: ModelField):
+def deterimine_choice_type(
+    cls: Type["BaseModel"], v: Any, values: Dict[str, Any], field: ModelField
+):
     """Automatically assign the value from one of the choice type alias fields to current field."""
     if v is not None:
         return v
