@@ -59,9 +59,11 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
     def __init__(
         self,
         resources: Sequence[R] = [],
+        references: Sequence[Reference] = [],
         base_url: Optional[Union[str, HttpUrl]] = None,
     ) -> None:
         self._resources = list(resources)
+        self._references = list(references)
         super().__init__(base_url)
 
     def iter(self):
@@ -165,7 +167,9 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         if auto_save_in_store and resource.id is None:
             self.put_resource(resource)
         assert resource.id is not None, "Resource is not known in this store."
-        return Reference(reference=f"{resource.resourceType}/{resource.id}")
+        reference=Reference(reference=f"{resource.resourceType}/{resource.id}")
+        self._references.append(reference)
+        return reference
 
     def put_resource(self, resource: R):
         ## TODO charlotte
