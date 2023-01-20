@@ -1,8 +1,9 @@
 from .Resource import Resource
-from .elements import CodeableConcept, Coding, Quantity, Reference
+from .elements import CodeableConcept, Coding, Quantity, Reference, Identifier
 from .CodeSystem import CodeSystem
 from .ValueSet import ValueSet, SimpleValueSet
 from .snomed import SCTCoding, SCTConcept, SCTFHIRTerminologyServer
+from .tiro import TiroCoding
 from .Observation import Observation
 from .Procedure import Procedure
 from .Encounter import Encounter
@@ -10,6 +11,8 @@ from .DocumentReference import DocumentReference
 from .DiagnosticReport import DiagnosticReport
 from .Immunization import Immunization
 from .Condition import Condition
+from .Condition import ConditionStage
+from .Condition import ConditionEvidence
 from .MedicationRequest import MedicationRequest
 from .MedicationStatement import MedicationStatement
 from .Medication import Medication
@@ -26,5 +29,6 @@ from .ImagingStudy import ImagingStudy
 from .Location import Location
 from .Patient import Patient
 from .Device import Device
-
+from .ClinicalImpression import ClinicalImpression
+from .Composition import Composition, CompositionEventType,CompositionRelatesTo,CompositionSection
 from .SimpleFHIRStore import SimpleFHIRStore
