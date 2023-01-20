@@ -9,7 +9,7 @@ classifiers = [
 ]
 setup(
     name="FHIRkit",
-    version="0.0.29",
+    version="0.0.30",
     description="Toolkit to handle FHIR Resources in a more efficient, pythonic way.",
     long_description=open("README.md").read(),
     url="",
