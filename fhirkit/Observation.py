@@ -62,7 +62,7 @@ class Observation(DomainResource, ResourceWithMultiIdentifier):
     identifier: Sequence[Identifier] = Field([], repr=True)
     partOf: Optional[List[Reference]] = Field([], repr=True)
     status: ObservationStatus = Field("final", repr=True)
-    category: Sequence[CodeableConcept] = Field([], repr=True)
+    category: Optional[Sequence[CodeableConcept]] = Field([], repr=True)
     code: CodeableConcept = Field(..., repr=True)
     subject: Optional[Reference]
     encounter: Optional[Reference]
