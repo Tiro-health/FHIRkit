@@ -69,7 +69,7 @@ class Observation(DomainResource, ResourceWithMultiIdentifier):
     
     effectivePeriod: Optional[Period] = Field(None, exclude=True)
     effectiveDateTime: Optional[datetime] = Field(None, exclude=True)
-    effective: Union[datetime, Period] = ChoiceType(None)
+    effective: Union[datetime, Period, str] = ChoiceType(None)
     
     performer: Optional[Reference]
     
