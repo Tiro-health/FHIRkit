@@ -62,6 +62,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         references: Sequence[Reference] = [],
         base_url: Optional[Union[str, HttpUrl]] = None,
     ) -> None:
+        self.resources = []
         self._resources = list(resources)
         self._references = list(references)
         super().__init__(base_url)
@@ -177,7 +178,7 @@ class SimpleFHIRStore(Generic[R], AbstractFHIRTerminologyServer, AbstractFHIRSer
         ## if resource with matching reource.identifier exists raise Error
         literal_id = uuid4().urn
         resource.id = literal_id
-        self._resources.append(resource)
+        self.resources.append(resource)
 
     def valueset_expand(self, *args, **kwargs):
         return super().valueset_expand(*args, **kwargs)
