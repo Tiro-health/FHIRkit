@@ -48,7 +48,7 @@ class Composition(DomainResource, ResourceWithMultiIdentifier):
     author: Optional[Reference] = Field(None, repr=True)
     category: Optional[CodeableConcept] = Field(None, repr=True)
     custodian: Optional[Reference] = Field(None, repr=True)
-    date: Optional[dateTime] = Field(None, exclude=True)
+    date: Optional[dateTime] = Field(None, repr=True)
     encounter: Optional[Reference] = Field(None, repr=True)
     event: Optional[Sequence[CompositionEventType]] = Field([], repr=True)
     identifier: Optional[Sequence[Identifier]] = Field([], repr=True)
