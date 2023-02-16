@@ -73,6 +73,15 @@ class Coding(AbstractCoding):
     def __str__(self) -> str:
         return self.display or f"{self.system}|{self.code}"
 
+    @classmethod
+    def from_fsh(self, fsh: str) -> Coding:
+        system, code = fsh.split("#")
+        if "|" in system:
+            system, version = system.split("|")
+        else:
+            version = None
+        return Coding(system=system, version=version, code=code)
+
     def fsh(self, include_display: bool = False, include_version: bool = True):
         token: str = self.system
         if self.version is not None and include_version:
