@@ -18,6 +18,7 @@ except ImportError:
 import requests
 from pydantic import Field, HttpUrl, ValidationError, parse_obj_as
 from fhirkit.Parameter import Parameters
+from fhirkit.Server import AbstractFHIRServer
 from fhirkit.TerminologyServer import AbstractFHIRTerminologyServer
 from fhirkit.ValueSet import VSExpansion, ValueSet
 from fhirkit.primitive_datatypes import URI, Code

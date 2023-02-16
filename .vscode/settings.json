@@ -5,7 +5,6 @@
   "python.testing.pytestEnabled": true,
   "python.testing.cwd": "${workspaceFolder}",
   "python.envFile": "${workspaceFolder}/.env",
-  "restructuredtext.confPath": "${workspaceFolder}/docs",
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
   "python.analysis.diagnosticMode": "workspace"

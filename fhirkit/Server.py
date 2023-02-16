@@ -8,7 +8,6 @@ from fhirkit.primitive_datatypes import literal, canonical
 if TYPE_CHECKING:
     from .elements import Identifier, Reference
     from .Resource import Resource
-from abc import ABC
 
 
 class ExpansionError(Exception):
@@ -19,13 +18,11 @@ class ResourceNotFoundError(Exception):
     pass
 
 
-class AbstractFHIRServer(ABC):
+class AbstractFHIRServer(abc.ABC):
     CURRENT_SERVER: Optional[AbstractFHIRServer] = None
 
     def __init__(self, base_url: Optional[Union[str, HttpUrl]] = None) -> None:
-        self._base_url = (
-            parse_obj_as(AnyUrl, base_url) if base_url is not None else base_url
-        )
+        self._base_url = parse_obj_as(AnyUrl, base_url) if base_url is not None else base_url
 
     @property
     def base_url(self):
@@ -74,9 +71,7 @@ class AbstractFHIRServer(ABC):
 
         try:
             if reference.identifier is not None and reference.type is not None:
-                return self.get_resource_by_identifier(
-                    identifier=reference.identifier, resourceType=reference.type
-                )
+                return self.get_resource_by_identifier(identifier=reference.identifier, resourceType=reference.type)
         except ResourceNotFoundError:
             pass
         raise ResourceNotFoundError(f"Could not resolve reference: {reference}")

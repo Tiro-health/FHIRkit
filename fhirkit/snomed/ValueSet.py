@@ -5,15 +5,11 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from pydantic import PrivateAttr, root_validator, Field
+from pydantic import root_validator, Field
 from fhirkit.ValueSet import VSCompose, VSFilter, VSInclude, ValueSet
 from fhirkit.primitive_datatypes import URI
-from fhirkit.elements import CodeableConcept, Coding, Narrative
+from fhirkit.elements import Narrative
 from fhirkit.snomed.consts import SCT_URI
-from fhirkit.snomed.terminology import (
-    SCTFHIRTerminologyServer,
-    get_default_terminology_server,
-)
 
 
 class SCTDescendantsFilter(VSFilter):
@@ -45,9 +41,7 @@ class SCTImplicitCompose(VSCompose):
 
 
 class SCTImplicitValueSet(ValueSet):
-    _fhir_server: SCTFHIRTerminologyServer = PrivateAttr(
-        default_factory=get_default_terminology_server
-    )
+
     status: Literal["draft", "active", "retired", "unknown"] = "active"
     url: Optional[URI]
     compose: Optional[SCTImplicitCompose]
@@ -56,25 +50,19 @@ class SCTImplicitValueSet(ValueSet):
     def check_either_url_or_compose(cls, values):
         url, compose = values.get("url"), values.get("compose")
         if url is None and compose is None:
-            raise ValueError(
-                "Either a 'url' or a 'compose' section should be specified to have a valid ValueSet."
-            )
+            raise ValueError("Either a 'url' or a 'compose' section should be specified to have a valid ValueSet.")
         return values
 
     def ensure_fhir_server(self):
         if self._fhir_server is None:
-            raise RuntimeWarning(
-                "Can't expand an implicit SNOMED-CT without a FHIR server."
-            )
+            raise RuntimeWarning("Can't expand an implicit SNOMED-CT without a FHIR server.")
         return True
 
     def equivalent_url(self):
         if self.url:
             return self.url
         else:
-            assert (
-                self.compose is not None
-            ), "If no url is specified at least a compose section should be available"
+            assert self.compose is not None, "If no url is specified at least a compose section should be available"
             inclusion = self.compose.include[0]
             filter_rule = inclusion.filter[0]
             if filter_rule.property == "constraint" and filter_rule.op == "=":
@@ -88,15 +76,6 @@ class SCTImplicitValueSet(ValueSet):
                     f"Unexepected filter {inclusion.filter[0].json()} in inclusion criterium: {inclusion.json()}"
                 )
             return url
-
-    def expand(self, **kwargs):
-        self.ensure_fhir_server()
-        url = self.equivalent_url()
-        self.init_expansion()
-        for expanded_vs in self._fhir_server.valueset_expand(url, **kwargs):
-            self.extend(expanded_vs.expansion.contains, extend_compose=False)
-
-        self.build_narrative()
 
     def build_narrative(self):
         self.text = Narrative(
@@ -138,25 +117,6 @@ class SCTImplicitValueSet(ValueSet):
                 </div>
             """,
         )
-
-    def validate_code(self, code: Union[Coding, CodeableConcept]):
-        self.ensure_fhir_server()
-        url = self.equivalent_url()
-        assert isinstance(
-            code, (Coding, CodeableConcept)
-        ), "code should be a Coding or CodeableConcept in order to be able to validate it against a ValueSet"
-        if self.has_expanded:
-            for member_code in self:
-                if code == member_code:
-                    return True
-            return False
-        if isinstance(code, Coding):
-            response = self._fhir_server.valueset_validate_code(url, coding=code)
-        else:
-            response = self._fhir_server.valueset_validate_code(
-                url, codeableConcept=code
-            )
-        return response.result
 
 
 class SCTImplicitInclude(VSInclude):

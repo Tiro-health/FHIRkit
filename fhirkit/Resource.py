@@ -59,8 +59,6 @@ RESOURCE_MODELS = []
 
 class Resource(BaseModel):
 
-    _fhir_server: Optional[AbstractFHIRServer] = PrivateAttr(None)
-
     resourceType: str
     id: Optional[str] = Field(None, repr=False)
     meta: Optional[Meta] = Field(None, repr=False)
@@ -177,7 +175,6 @@ class ResourceWithMultiIdentifier(Resource):
 
 class CanonicalResource(DomainResource, ResourceWithMultiIdentifier):
     url: Optional[URI] = None
-    identifier: Sequence[Identifier] = []
     version: Optional[str] = None
     name: Optional[str] = None
     title: Optional[str] = None
