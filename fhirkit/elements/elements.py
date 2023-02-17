@@ -106,9 +106,12 @@ class Coding(AbstractCoding):
 class CodeableConcept(BaseModel):
     """FHIR Terminology based model for CodeableConcepts"""
 
-    text: Optional[str] = None
-    coding: Sequence[Coding] = Field([])
-    active: Optional[bool] = None
+    coding: Sequence[Coding] = Field(
+        None,
+        title="Code defined by a terminology system")
+    text: Optional[str] = Field(
+        None,
+        title="Plain text representation of the concept")
 
     def __str__(self) -> str:
         return self.text or super().__str__()
@@ -128,11 +131,13 @@ class CodeableConcept(BaseModel):
 
 CodeableConcept.update_forward_refs()
 
-
 class Period(Element):
-    start: Optional[dateTime]
-    end: Optional[dateTime]
-
+    start: Optional[dateTime] = Field(
+        None,
+        title="Start time with inclusive boundary")
+    end: Optional[dateTime] = Field(
+        None,
+        title="End time with inclusive boundary")
 
 class UnresolveableReference(ValueError):
     def __init__(self, reference: Reference, *args) -> None:
@@ -147,11 +152,16 @@ class Reference(Element):
     reference: Optional[literal] = Field(
         None,
         title="Literal reference pointing to a resource with a URL",
-        description="This can be an absolute URL or relative URL (implying the to use the ). Fragments can be used to point to contained resources",
-    )
-    type: Optional[URI] = None
-    identifier: Optional[Identifier] = None
-    display: Optional[str] = None
+        description="This can be an absolute URL or relative URL (implying the to use the ). Fragments can be used to point to contained resources",)
+    type: Optional[URI] = Field(
+        None,
+        title="Type of the resource (e.g. Patient)")
+    identifier: Optional[Identifier] = Field(
+        None,
+        title="Logical reference, when literal reference is not known")
+    display: Optional[str] = Field(
+        None,
+        title="Text alternative for the resource")
 
     def __repr__(self) -> str:
         if self.display is not None:
@@ -169,14 +179,27 @@ class Reference(Element):
         except ResourceNotFoundError as exc:
             raise UnresolveableReference(reference=self) from exc
 
-
-class Identifier(Element):
-    use: Optional[Code]
-    type: Optional[CodeableConcept]
-    system: Optional[URI]
-    value: Optional[str]
-    period: Optional[Period]
-    assigner: Optional[Reference]
+IdentifierCode = Literal["usual", "official", "temp", "secondary (If known)"]
+class Identifier(Element): 
+    use: Optional[IdentifierCode] = Field(
+        None,
+        title="usual | official | temp | secondary (If known)")
+    type: Optional[CodeableConcept] = Field(
+        None,
+        title="Description of identifier")
+    system: Optional[URI] = Field(
+        None,
+        title="The namespace for the identifier value")
+    value: Optional[str] = Field(
+        None,
+        title="The value that is unique")
+    period: Optional[Period] = Field(
+        None,
+        title="Time period when id is/was valid for use")
+    assigner: Optional[Reference] = Field(
+        None,
+        enum_reference_types=["Organization"],
+        title="Organization that issued id (may be just text)")
 
     def __eq__(self, __o: object) -> bool:
         if not isinstance(__o, Identifier):
@@ -244,6 +267,7 @@ class ContactPoint(Element):
 
 AdministrativeGender = Literal["male", "female", "other", "unknown"]
 
+DaysOfWeek = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 HumanNameUse = Literal[
     "usual",
@@ -311,3 +335,13 @@ class Signature(Element):
     targetFormat: Optional[Code] = None
     sigFormat: Optional[Code] = None
     data: Optional[bytes]
+
+LinkType = Literal["replaced-by", "replaces", "refer", "seealso"]
+class Link(Element):
+    other: Reference = Field(
+        None,
+        enum_reference_types=["Patient","RelatedPerson"],)
+    type: LinkType = Field(
+        None,
+        title="replaced-by | replaces | refer | seealso")
+
