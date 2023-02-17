@@ -1,12 +1,31 @@
 from .Resource import Resource
-from .elements import CodeableConcept, Coding, Quantity, Reference, Identifier
+from .elements import (
+    CodeableConcept, 
+    Coding, 
+    Quantity, 
+    Reference, 
+    Identifier,
+    Period,Range,
+    Annotation,
+    ContactPoint,
+    HumanName,
+    Address,
+    Attachment,
+    Signature,
+    Meta,
+    Extension,
+    UsageContext,
+    Duration,
+    Annotation,
+    UsageContext
+)
 from .CodeSystem import CodeSystem
 from .ValueSet import ValueSet, SimpleValueSet
 from .snomed import SCTCoding, SCTConcept, SCTFHIRTerminologyServer
 from .tiro import TiroCoding
 from .Observation import Observation
-from .Procedure import Procedure
-from .Encounter import Encounter
+from .Procedure import Procedure, ProcedurePerformer, ProcedureFocalDevice
+from .Encounter import Encounter, EncounterParticipant, EncounterDiagnosis, EncounterHospitalization
 from .DocumentReference import DocumentReference
 from .DiagnosticReport import DiagnosticReport
 from .Immunization import Immunization
@@ -20,7 +39,7 @@ from .MedicationAdministration import MedicationAdministration
 from .CareTeam import CareTeam
 from .CarePlan import CarePlan
 from .Organization import Organization
-from .Practitioner import Practitioner
+from .Practitioner import Practitioner, PractitionerQualification
 from .Provenance import Provenance
 from .SupplyDelivery import SupplyDelivery
 from .PractitionerRole import PractitionerRole
