@@ -345,3 +345,23 @@ class Link(Element):
         None,
         title="replaced-by | replaces | refer | seealso")
 
+class Meta(Element):
+    versionId: Optional[id] = Field(
+        None,
+        title="Version specific identifier")
+    lastUpdated: Optional[Instant] = Field(
+        None,
+        title="When the resource version last changed")
+    source: Optional[URI] = Field(
+        None,
+        title="Identifies where the resource comes from")
+    profile: Optional[Sequence[AnyUrl]] = Field(
+        None,
+        enum_canonical_values=["StructureDefinition"],
+        title="Profiles this resource claims to conform to")
+    security: Optional[Sequence[Coding]] = Field(
+        None,
+        title="Security Labels applied to this resource")
+    tag: Optional[Sequence[Coding]] = Field(
+        None,
+        title="Tags applied to this resource")
