@@ -37,6 +37,12 @@ def test_canonical_url():
 
 def test_parse_uri():
     source="ANONIEM_id 1602 CAS.xlsx#R0"
-    check.is_instance(source, URI)
+    assert isinstance(source, URI)
+    #check.is_instance(source, URI)
+
+def test_parse_literal():
+    source="Patient/example"
+    assert (isinstance(source, literal))
+    #check.is_instance(source, literal)
     
 
