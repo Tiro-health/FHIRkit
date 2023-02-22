@@ -34,28 +34,15 @@ from fhirkit.elements import (
     Period,
     Range,
     UsageContext,
+    Meta
 )
 from fhirkit.metadata_types import ContactDetail
-
-
-class Meta(BaseModel):
-    versionId: Optional[Id]
-    lastUpdated: Optional[Instant]
-    source: Optional[URI]
-    profile: List[URI] = []
-    security: List[Coding] = []
-    tag: List[Coding] = []
-    # Custom fields
-    title: Optional[str] = Field(None, repr=False)
-    pathway: Optional[str] = Field(None, repr=False)
-
 
 InclusionExclusion = Union[AbstractSet[Union[int, str]], Mapping[Union[int, str], Any]]
 AbstractSetIntStr = AbstractSet[Union[int, str]]
 MappingIntStrAny = Mapping[Union[int, str], Any]
 
 RESOURCE_MODELS = []
-
 
 class Resource(BaseModel):
 

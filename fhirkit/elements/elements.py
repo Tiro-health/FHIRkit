@@ -14,13 +14,13 @@ from fhirkit.BaseModel import BaseModel
 
 if TYPE_CHECKING:
     from fhirkit.Resource import Resource
-from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime, literal
+from fhirkit.primitive_datatypes import URI, Code, XHTML, Instant, dateTime, literal,Id
 from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 
 
 class Element(BaseModel):
     id: Optional[str] = None
-    extension: Sequence[Extension] = Field([], repr=False)
+    extension: Optional[Sequence[Extension]] = Field([], repr=False)
 
 
 class Attachment(Element):
@@ -346,9 +346,12 @@ class Link(Element):
         title="replaced-by | replaces | refer | seealso")
 
 class Meta(Element):
-    versionId: Optional[id] = Field(
+    versionId: Optional[Id] = Field(
         None,
         title="Version specific identifier")
+    lastUpdated: Optional[Instant] = Field(
+        None,
+        title="When the resource version last changed")
     lastUpdated: Optional[Instant] = Field(
         None,
         title="When the resource version last changed")
