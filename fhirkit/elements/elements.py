@@ -149,7 +149,7 @@ class UnresolveableReference(ValueError):
 
 
 class Reference(Element):
-    reference: Optional[literal] = Field(
+    reference: Optional[str] = Field(
         None,
         title="Literal reference pointing to a resource with a URL",
         description="This can be an absolute URL or relative URL (implying the to use the ). Fragments can be used to point to contained resources",)
