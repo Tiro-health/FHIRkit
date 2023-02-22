@@ -8,6 +8,7 @@ pydantic = "*"
 requests = "*"
 tqdm = "*"
 pytest = "*"
+pytest-check = "*"
 
 [dev-packages]
 pytest = "*"
