@@ -1,5 +1,6 @@
 from re import T
 from pydantic import parse_obj_as
+from pytest_check import check
 from fhirkit.primitive_datatypes import (
     URI,
     AbsoluteURL,
@@ -33,3 +34,9 @@ def test_canonical_url():
         url, CanonicalURL
     ), "Expected instance AbsoluteURL but recieved %s" % type(url)
     assert url.fragment == "test"
+
+def test_parse_uri():
+    source="ANONIEM_id 1602 CAS.xlsx#R0"
+    check.is_instance(source, URI)
+    
+
