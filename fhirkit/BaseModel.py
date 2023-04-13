@@ -55,17 +55,7 @@ class BaseModel(pydantic.BaseModel):
                         continue
                 except TypeError:
                     pass
-            if by_alias and k in self.__fields__:
-                field = self.__fields__[k]
-                if "choice_type" in field.field_info.extra:
-                    # notice that 'v' can be a dict when are being called from Model.dict()
-                    # this is why we use self.__getattribute to get the original type
-                    type_class = get_matching_type(self.__getattribute__(k), field)
-                    suffix = TYPE_NAME_ALIAS.get(
-                        type_class.__name__, type_class.__name__
-                    )
-                    suffix = suffix[:1].title() + suffix[1:]
-                    k = k + suffix
+                
             yield k, v
 
     def dict(

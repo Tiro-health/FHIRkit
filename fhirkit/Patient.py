@@ -52,13 +52,10 @@ class Patient(DomainResource):
         title="The date of birth for the individual")
     deceasedBoolean: Optional[bool] = Field(
         None, 
-        exclude=True)
+        exclude=False)
     deceasedDateTime: Optional[dateTime] = Field(
         None, 
-        exclude=True)
-    deceased: Union[bool, dateTime, None] = ChoiceType(
-        None,
-        title="Indicates if the individual is deceased or not")
+        exclude=False)
     address: Optional[Sequence[Address]] = Field(
         None,
         title="Addresses for the individual")
@@ -96,10 +93,3 @@ class Patient(DomainResource):
         None,
         title="Link to another patient resource that concerns the same actual patient")
 
-    @validator("deceased", pre=True, always=True, allow_reuse=True)
-    def validate_deceased(cls, v, values, field):
-        return deterimine_choice_type(cls, v, values, field)
-
-    @validator("multipleBirth", pre=True, always=True, allow_reuse=True)
-    def validate_multipleBirth(cls, v, values, field):
-        return deterimine_choice_type(cls, v, values, field)

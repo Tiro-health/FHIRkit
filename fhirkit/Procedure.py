@@ -4,7 +4,7 @@ except ImportError:
     from typing_extensions import Literal  # type:ignore
 from typing import Optional, Union, List, Sequence
 from pydantic import Field, validator,AnyUrl
-from fhirkit.choice_type import deterimine_choice_type, ChoiceType
+from fhirkit.choice_type import deterimine_choice_type
 from fhirkit.Resource import DomainResource, ResourceWithMultiIdentifier
 from fhirkit.elements import (
     CodeableConcept,
@@ -95,22 +95,22 @@ class Procedure(DomainResource, ResourceWithMultiIdentifier):
         None,
         enum_reference_types=["Encounter"],
         title="Encounter created as part of")
-    performedDateTime: Optional[dateTime] = Field(
-        None, 
-        exclude=True)
-    performedPeriod: Optional[Period] = Field(
-        None, 
-        exclude=True)
-    performedString: Optional[str] = Field(
-        None, 
-        exclude=True)
-    performedAge: Optional[int] = Field(
-        None, 
-        exclude=True)
-    performedRange: Optional[Range] = Field(
-        None, 
-        exclude=True)
-    performed: Optional[Union[dateTime, Period, str, int]] = ChoiceType(
+    #performedDateTime: Optional[dateTime] = Field(
+    #    None, 
+    #    exclude=False)
+    #performedPeriod: Optional[Period] = Field(
+    #    None, 
+    #    exclude=False)
+    #performedString: Optional[str] = Field(
+    #    None, 
+    #    exclude=False)
+    #performedAge: Optional[int] = Field(
+    #    None, 
+    #    exclude=False)
+    #performedRange: Optional[Range] = Field(
+    #    None, 
+    #    exclude=False)
+    performed: Optional[Union[dateTime, Period, str, int]] = Field(
         None,
         title="When the procedure was performed")
     recorder: Optional[Reference] = Field(
@@ -160,12 +160,3 @@ class Procedure(DomainResource, ResourceWithMultiIdentifier):
     usedCode: Optional[List[CodeableConcept]] = Field(
         None,
         title="Coded items used during the procedure")
-   
-    @validator("performed", pre=True, always=True, allow_reuse=True)
-    def validate_performed(cls, v, values, field):
-        return deterimine_choice_type(
-            cls,
-            v,
-            values,
-            field,
-        )
