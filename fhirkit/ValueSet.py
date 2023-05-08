@@ -3,7 +3,7 @@ from datetime import date, datetime
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Literal # type: ignore
 from typing import Iterable, List, Optional, Sequence, Union
 from pydantic import Field
 from fhirkit.BaseModel import BaseModel

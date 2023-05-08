@@ -6,7 +6,7 @@ import re
 try:
     from typing import Annotated
 except ImportError:
-    from typing_extensions import Annotated
+    from typing_extensions import Annotated # type: ignore
 
 from typing import Optional, Union, no_type_check
 from pydantic import ConstrainedStr, AnyUrl, Field

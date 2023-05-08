@@ -20,7 +20,7 @@ from fhirkit.Server import AbstractFHIRServer, ResourceNotFoundError
 
 class Element(BaseModel):
     id: Optional[str] = None
-    extension: Optional[Sequence[Extension]] = Field([], repr=False)
+    extension: Optional[Sequence[Extension]] = Field(default_factory=list, repr=False)
 
 
 class Attachment(Element):
@@ -74,7 +74,7 @@ class Coding(AbstractCoding):
         return self.display or f"{self.system}|{self.code}"
 
     @classmethod
-    def from_fsh(self, fsh: str) -> Coding:
+    def from_fsh(cls, fsh: str) -> Coding:
         system, code = fsh.split("#")
         if "|" in system:
             system, version = system.split("|")
@@ -352,19 +352,16 @@ class Meta(Element):
     lastUpdated: Optional[Instant] = Field(
         None,
         title="When the resource version last changed")
-    lastUpdated: Optional[Instant] = Field(
-        None,
-        title="When the resource version last changed")
     source: Optional[URI] = Field(
         None,
         title="Identifies where the resource comes from")
     profile: Optional[Sequence[AnyUrl]] = Field(
-        None,
+        default_factory=list,
         enum_canonical_values=["StructureDefinition"],
         title="Profiles this resource claims to conform to")
     security: Optional[Sequence[Coding]] = Field(
-        None,
+        default_factory=list,
         title="Security Labels applied to this resource")
     tag: Optional[Sequence[Coding]] = Field(
-        None,
+        default_factory=list,
         title="Tags applied to this resource")

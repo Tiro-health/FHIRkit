@@ -8,7 +8,7 @@ def test_descendants_rarp():
     ralp = SCTCoding(
         "708919000 |Laparoscopic radical prostatectomy using robotic assistance (procedure)|"
     )
-    assert ralp in vs_rad_prod
+    assert vs_rad_prod.validate(ralp)
 
 
 def test_descendants_influenza():
