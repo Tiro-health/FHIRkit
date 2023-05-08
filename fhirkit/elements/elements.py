@@ -36,7 +36,7 @@ class Narrative(Element):
 
 class Extension(Element):
     url: URI
-    value: Optional[Any]
+    value: Optional[Any] = None
 
 
 class BackboneElement(Element):

@@ -69,11 +69,11 @@ class VSCodingWithDesignation(Coding):
 
 
 class VSExpansion(BaseModel):
-    offset: Optional[int]
-    total: Optional[int]
+    offset: Optional[int] = None
+    total: Optional[int] = None
     contains: List[VSCodingWithDesignation] = []
     identifier: Optional[URI] = None
-    timestamp: dateTime = Field(default_factory=datetime.now)
+    timestamp: datetime = Field(default_factory=datetime.now)
 
 
 class ValueSet(CanonicalResource):
@@ -83,23 +83,6 @@ class ValueSet(CanonicalResource):
     compose: Optional[VSCompose]
     expansion: Optional[VSExpansion]
     useContext: Sequence[UsageContext] = Field([], repr=True)
-
-    def __iter__(self):
-        if not self.has_expanded:
-            self.expand()
-        for coding in self.expansion.contains:
-            yield coding
-
-    def __len__(self):
-        if not self.has_expanded:
-            self.expand()
-            assert self.has_expanded, "ValueSet has no expansion even after running `self.expand()`."
-        return self.expansion.total or len(self.expansion.contains)
-
-    def __contains__(self, item: Union[Coding, CodeableConcept]) -> bool:
-        if not isinstance(item, (Coding, CodeableConcept)):
-            return False
-        return self.validate_code(item)
 
     @property
     def has_expanded(self):
@@ -139,7 +122,7 @@ class SimpleValueSet(ValueSet):
 
             assert "expansion" not in kwargs, "When passing an iterable with concepts, `expansion` should be None."
             super().__init__(
-                expansion=VSExpansion(contains=[c.dict() for c in args], total=len(args)),
+                expansion=VSExpansion.parse_obj({"contains":[c.dict() for c in args], "total":len(args)}),
                 text=Narrative(
                     status="generated",
                     div="""
@@ -200,7 +183,7 @@ class SimpleValueSet(ValueSet):
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         if isinstance(code, CodeableConcept):
-            return any(c in self for c in code.coding)
+            return any(self.validate_code(c) for c in code.coding)
         elif isinstance(code, Coding):
             return any(c == code for c in self)
         else:

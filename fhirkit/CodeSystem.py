@@ -101,7 +101,7 @@ def traverse_concepts(
 
 
 class CodeSystem(CanonicalResource):
-    resourceType = Field("CodeSystem", const=True)
+    resourceType:Literal["CodeSystem"] = Field("CodeSystem", const=True)
     url: Optional[URI]
     identifier: Sequence[Identifier] = []
     version: Optional[str]
@@ -173,26 +173,6 @@ class CodeSystem(CanonicalResource):
 
     def iter(self) -> Generator[CSConcept, None, None]:
         yield from traverse_concepts(self.concept)
-
-    def __iter__(self):
-        return self.iter()
-
-    def __len__(self):
-        if self.count:
-            return self.count
-        if self.content == "complete":
-            self.count = len(self)
-        raise ValueError(
-            "CodeSystem.count is None and we have not strategy to estimate the number of concepts when CodeSystem.content != 'complete'"
-        )
-
-    def __getitem__(self, key: Code | Coding) -> CSConceptLookup:
-
-        if isinstance(key, (Code, str)):
-            return self.lookup(code=key)
-        elif isinstance(key, Coding):
-            return self.lookup(coding=key)
-        raise KeyError("Key should be a Code or a Coding but received " + key)
 
 
 CodeSystem.update_forward_refs()
