@@ -40,7 +40,7 @@ class Extension(Element):
 
 
 class BackboneElement(Element):
-    modifierExtension: Sequence[Extension] = Field([], repr=False)
+    modifierExtension: Sequence[Extension] = Field(default_factory=list, repr=False)
 
 
 Narrative.update_forward_refs()
@@ -63,6 +63,7 @@ class AbstractCoding(Element):
 @total_ordering
 class Coding(AbstractCoding):
     system: URI
+    userSelected: Optional[bool] = None
 
     def __repr__(self) -> str:
         if self.display:
@@ -107,7 +108,7 @@ class CodeableConcept(BaseModel):
     """FHIR Terminology based model for CodeableConcepts"""
 
     coding: Sequence[Coding] = Field(
-        None,
+        default_factory=list,
         title="Code defined by a terminology system")
     text: Optional[str] = Field(
         None,

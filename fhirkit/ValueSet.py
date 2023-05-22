@@ -12,6 +12,7 @@ from fhirkit.elements import (
     BackboneElement,
     CodeableConcept,
     Coding,
+    AbstractCoding,
     Narrative,
     UsageContext,
 )
@@ -63,15 +64,27 @@ class VSCompose(BaseModel):
     lockedDate: Optional[date]
     inactive: Optional[bool]
 
+class VSCodingProperty(BackboneElement):
+    code: str
+    valueCode: str
+    valueCoding: Coding
+    valueString: str
+    valueInteger: int
+    valueBoolean: bool
+    valueDateTime: dateTime
+    valueDecimal: float
 
-class VSCodingWithDesignation(Coding):
-    designation: List[VSDesignation] = Field(default=[])
 
+class VSCodingWithDesignation(AbstractCoding):
+    designation: Sequence[VSDesignation] = Field(default_factory=list)
+    abstract: Optional[bool] = None
+    inactive: Optional[bool] = None
+    property: Sequence[VSCodingProperty] = Field(default_factory=list)
 
-class VSExpansion(BaseModel):
+class VSExpansion(BackboneElement):
     offset: Optional[int] = None
     total: Optional[int] = None
-    contains: List[VSCodingWithDesignation] = []
+    contains: Sequence[VSCodingWithDesignation] = Field(default_factory=list)
     identifier: Optional[URI] = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
@@ -82,7 +95,7 @@ class ValueSet(CanonicalResource):
     name: Optional[str]
     compose: Optional[VSCompose]
     expansion: Optional[VSExpansion]
-    useContext: Sequence[UsageContext] = Field([], repr=True)
+    useContext: Sequence[UsageContext] = Field(default_factory=list, repr=True)
 
     @property
     def has_expanded(self):
