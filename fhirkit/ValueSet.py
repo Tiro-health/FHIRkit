@@ -5,7 +5,7 @@ try:
 except ImportError:
     from typing_extensions import Literal # type: ignore
 from typing import Iterable, List, Optional, Sequence, Union
-from pydantic import Field
+from pydantic import Field, validator
 from fhirkit.BaseModel import BaseModel
 from fhirkit.primitive_datatypes import URI, dateTime
 from fhirkit.elements import (
@@ -66,14 +66,13 @@ class VSCompose(BaseModel):
 
 class VSCodingProperty(BackboneElement):
     code: str
-    valueCode: str
-    valueCoding: Coding
-    valueString: str
-    valueInteger: int
-    valueBoolean: bool
-    valueDateTime: dateTime
-    valueDecimal: float
-
+    valueCode: Optional[str]
+    valueCoding: Optional[Coding]
+    valueString: Optional[str]
+    valueInteger: Optional[int]
+    valueBoolean: Optional[bool]
+    valueDateTime: Optional[dateTime]
+    valueDecimal: Optional[float]
 
 class VSCodingWithDesignation(AbstractCoding):
     designation: Sequence[VSDesignation] = Field(default_factory=list)
