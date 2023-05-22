@@ -42,7 +42,7 @@ class Organization(DomainResource, ResourceWithMultiIdentifier):
     type: Optional[Sequence[CodeableConcept]] = Field(
         None,
         title="Kind of organization")
-    name: Optional[HumanName] = Field(
+    name: Optional[str] = Field(
         None,
         title="Name used for the organization")
     alias: Optional[List[str]] = Field(
