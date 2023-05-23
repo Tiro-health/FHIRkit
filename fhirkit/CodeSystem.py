@@ -44,19 +44,21 @@ class CSConceptDesignation(BackboneElement):
 
 class CSConceptProperty(BackboneElement):
     code: Code
-    valueBoolean: Optional[StrictBool] = Field(None, exclude=True)
-    valueString: Optional[StrictStr] = Field(None, exclude=True)
-    valueCode: Optional[Code] = Field(None, exclude=True)
-    valueCoding: Optional[Coding] = Field(None, exclude=True)
-    valueDateTime: Optional[dateTime] = Field(None, exclude=True)
-    valueDecimal: Optional[float] = Field(None, exclude=True)
-    value: Union[StrictBool, StrictStr, Code, Coding, dateTime, float] = ChoiceType(
-        None
-    )
+    valueBoolean: Optional[StrictBool] = Field(None)
+    valueString: Optional[StrictStr] = Field(None,)
+    valueCode: Optional[Code] = Field(None,)
+    valueCoding: Optional[Coding] = Field(None)
+    valueDateTime: Optional[dateTime] = Field(None)
+    valueDecimal: Optional[float] = Field(None)
 
-    @validator("value", pre=True, always=True, allow_reuse=True)
-    def validate_value(cls, v, values, field):
-        return deterimine_choice_type(cls, v, values, field)
+    @property
+    def value(self)->StrictBool|StrictStr|Code|Coding|dateTime|float:
+        for prop in self.__fields__.keys():
+            if prop.startswith("value"):
+                v = getattr(self, prop)
+                if v is not None:
+                    return v
+        raise RuntimeError("No value found in CSConceptProperty")
 
     def __str__(self) -> str:
         return str(self.code) + ": " + str(self.value)
