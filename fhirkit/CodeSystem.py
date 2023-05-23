@@ -63,7 +63,6 @@ class CSConceptProperty(BackboneElement):
     def __str__(self) -> str:
         return str(self.code) + ": " + str(self.value)
 
-
 class CSConcept(BackboneElement):
     code: Code
     display: Optional[str]
