@@ -1,143 +1,116 @@
-from datetime import date, datetime
-
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal # type: ignore
-from typing import Iterable, List, Optional, Sequence, Union
+    from typing_extensions import Literal  # type: ignore
+from typing import Iterable, Sequence, Union, List
 from pydantic import Field, validator
-from fhirkit.BaseModel import BaseModel
-from fhirkit.primitive_datatypes import URI, dateTime
+from fhirkit import r5
+from fhirkit.utils.deprecated import deprecated
 from fhirkit.elements import (
-    BackboneElement,
     CodeableConcept,
     Coding,
-    AbstractCoding,
-    Narrative,
-    UsageContext,
 )
-from fhirkit.Resource import CanonicalResource
 
 
-class VSDesignation(BaseModel):
-    language: Optional[str]
-    use: Optional[Coding]
-    value: str
+@deprecated(reason="Use r5.ValueSetComposeIncludeConceptDesignation instead")
+class VSDesignation(r5.ValueSetComposeIncludeConceptDesignation):
+    """This class is deprecated. Use r5.ValueSetComposeIncludeConceptDesignation instead."""
+
+    pass
 
 
-class VSConcept(BaseModel):
-    code: str
-    display: Optional[str]
-    designation: List[VSDesignation] = Field(default=[])
+@deprecated(reason="Use r5.ValueSetComposeIncludeConcept instead")
+class VSConcept(r5.ValueSetComposeIncludeConcept):
+    """This class is deprecated. Use r5.ValueSetComposeIncludeConcept instead."""
+
+    pass
 
 
-class VSFilter(BackboneElement):
-    property: str
-    op: Literal[
-        "=",
-        "is-a",
-        "descendent-of",
-        "is-not-a",
-        "regex",
-        "in",
-        "not-in",
-        "generalizes",
-        "child-of",
-        "descendent-leaf",
-        "exists",
-    ]
-    value: str
+ALLOWED_OPERATORS = [
+    r5.code("="),
+    r5.code("is-a"),
+    r5.code("descendent-of"),
+    r5.code("is-not-a"),
+    r5.code("regex"),
+    r5.code("in"),
+    r5.code("not-in"),
+    r5.code("generalizes"),
+    r5.code("child-of"),
+    r5.code("descendent-leaf"),
+    r5.code("exists"),
+]
 
 
-class VSInclude(BackboneElement):
-    system: Optional[URI] = None
-    version: Optional[str] = None
-    concept: Sequence[VSConcept] = Field(default=[])
-    filter: Sequence[VSFilter] = Field(default=[])
-    valueSet: Sequence[URI] = Field(default=[])
+class VSFilter(r5.ValueSetComposeIncludeFilter):
+    """Select concepts by specifying a matching criterion based on the properties (including relationships) defined by the system, or on filters defined by the system. If multiple filters are specified within the include, they SHALL all be true."""
+
+    op: r5.code = Field(default=...)
+    "The kind of operation to perform as a part of the filter criteria."
+
+    @validator("op")
+    def operator_must_be_allowed(cls, v):
+        if v not in ALLOWED_OPERATORS:
+            raise ValueError(
+                f"Operator {v.operator} is not allowed. Allowed operators are {ALLOWED_OPERATORS}"
+            )
+        return v
 
 
-class VSCompose(BaseModel):
-    include: Sequence[VSInclude] = []
-    exclude: Sequence[VSInclude] = []
-    property: Sequence[str] = []
-    lockedDate: Optional[date]
-    inactive: Optional[bool]
+class VSInclude(r5.ValueSetComposeInclude):
+    """Include one or more codes from a code system or other value set(s)."""
 
-class VSCodingProperty(BackboneElement):
-    code: str
-    valueCode: Optional[str]
-    valueCoding: Optional[Coding]
-    valueString: Optional[str]
-    valueInteger: Optional[int]
-    valueBoolean: Optional[bool]
-    valueDateTime: Optional[dateTime]
-    valueDecimal: Optional[float]
-
-class VSCodingWithDesignation(AbstractCoding):
-    designation: Sequence[VSDesignation] = Field(default_factory=list)
-    abstract: Optional[bool] = None
-    inactive: Optional[bool] = None
-    property: Sequence[VSCodingProperty] = Field(default_factory=list)
-
-class VSExpansion(BackboneElement):
-    offset: Optional[int] = None
-    total: Optional[int] = None
-    contains: Sequence[VSCodingWithDesignation] = Field(default_factory=list)
-    identifier: Optional[URI] = None
-    timestamp: datetime = Field(default_factory=datetime.now)
+    filter: Sequence[VSFilter] = Field(default_factory=list)
 
 
-class ValueSet(CanonicalResource):
+class VSCompose(r5.ValueSetCompose):
+    """A set of criteria that define the contents of the value set by including or excluding codes selected from the specified code system(s) that the value set draws from. This is also known as the Content Logical Definition (CLD)."""
+
+    include: Sequence[VSInclude] = Field(default=...)
+    "Include one or more codes from a code system or other value set(s)."
+    exclude: Sequence[VSInclude] = Field(default_factory=list)
+    "Exclude one or more codes from the value set based on code system filters and/or other value sets."
+
+
+@deprecated(reason="Use r5.ValueSetExpansionContainsProperty instead")
+class VSCodingProperty(r5.ValueSetExpansionContainsProperty):
+    """This class is deprecated. Use r5.ValueSetExpansionContainsProperty instead."""
+
+    pass
+
+
+@deprecated(reason="Use r5.ValueSetExpansionContains instead")
+class VSCodingWithDesignation(r5.ValueSetExpansionContains):
+    """This class is deprecated. Use r5.ValueSetExpansionContains instead."""
+
+
+@deprecated(reason="Use r5.ValueSetExpansion instead")
+class VSExpansion(r5.ValueSetExpansion):
+    """This class is deprecated. Use r5.ValueSetExpansion instead."""
+
+
+class ValueSet(r5.ValueSet):
     resourceType: Literal["ValueSet"] = Field("ValueSet", const=True)
-    url: Optional[URI]
-    name: Optional[str]
-    compose: Optional[VSCompose]
-    expansion: Optional[VSExpansion]
-    useContext: Sequence[UsageContext] = Field(default_factory=list, repr=True)
-
-    @property
-    def has_expanded(self):
-        return self.expansion is not None
-
-    def expand(self):
-        """Override this method to implement expansion logic.
-        This method should fill ValueSet.expansion.contains with concepts.
-
-        Implementing this method enables you to iterate over the ValueSet in a for-loop.
-        ```python
-        class MyCustomValueSet(ValueSet)
-
-            def expand(self):
-                # some expansion logic
-
-        vs_example = MyCustomValueSet()
-        for coding in vs:
-            print(coding)
-        "
-        """
-        raise NotImplementedError()
-
-    def validate_code(self, code: Union[Coding, CodeableConcept]):
-        raise NotImplementedError()
-
-    def init_expansion(self):
-        self.expansion = VSExpansion()
+    compose: VSCompose | None = Field(default=None)
+    "A set of criteria that define the contents of the value set by including or excluding codes selected from the specified code system(s) that the value set draws from. This is also known as the Content Logical Definition (CLD)."
 
 
 class SimpleValueSet(ValueSet):
-    status: Literal["active"] = Field("active", const=True)
+    status: r5.code = Field("active", const=True)
     expansion: VSExpansion
 
     def __init__(self, *args: VSCodingWithDesignation, **kwargs):
         if len(args) > 0:
-
-            assert "expansion" not in kwargs, "When passing an iterable with concepts, `expansion` should be None."
+            assert (
+                "expansion" not in kwargs
+            ), "When passing an iterable with concepts, `expansion` should be None."
             super().__init__(
-                expansion=VSExpansion.parse_obj({"contains":[c.dict() for c in args], "total":len(args)}),
-                text=Narrative(
-                    status="generated",
-                    div="""
+                expansion=VSExpansion.parse_obj(
+                    {"contains": [c.dict() for c in args], "total": len(args)}
+                ),
+                text=r5.Narrative(
+                    status=r5.code("generated"),
+                    div=r5.xhtml(
+                        """
                 <div>
                     <style scoped>
                         .dataframe tbody tr th:only-of-type {
@@ -162,16 +135,17 @@ class SimpleValueSet(ValueSet):
                             </tr>
                         </thead>
                         <tbody>"""
-                    + "".join(
-                        [
-                            f"<tr><th>{c.code}</th><td>{c.display}</td><td>{c.system}</td><td>{c.version}</td></tr>"
-                            for c in args
-                        ]
-                    )
-                    + """
+                        + "".join(
+                            [
+                                f"<tr><th>{c.code}</th><td>{c.display}</td><td>{c.system}</td><td>{c.version}</td></tr>"
+                                for c in args
+                            ]
+                        )
+                        + """
                         </tbody>
                     </table>
                 </div>""",
+                    ),
                 ),
                 **kwargs,
             )
@@ -182,16 +156,19 @@ class SimpleValueSet(ValueSet):
         self,
         code: VSCodingWithDesignation,
     ):
-
-        assert self.expansion is not None, "`self.expansion` is None after initialisation with `self.init_expansion`"
-        self.expansion.contains.append(code)
+        assert (
+            self.expansion is not None
+        ), "`self.expansion` is None after initialisation with `self.init_expansion`"
+        self.expansion.contains = list(self.expansion.contains) + [code]
 
     def extend(
         self,
         codes: Iterable[VSCodingWithDesignation],
     ):
-        assert self.expansion is not None, "`self.expansion` is None after initialisation with `self.init_expansion`"
-        self.expansion.contains.extend(codes)
+        assert (
+            self.expansion is not None
+        ), "`self.expansion` is None after initialisation with `self.init_expansion`"
+        self.expansion.contains = list(self.expansion.contains) + list(codes)
 
     def validate_code(self, code: Union[Coding, CodeableConcept]):
         if isinstance(code, CodeableConcept):

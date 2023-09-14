@@ -1,58 +1,41 @@
 from __future__ import annotations
 from typing import (
     Any,
-    ClassVar,
-    Iterable,
-    Optional,
     Sequence,
-    Set,
-    TypeVar,
-    Union,
-    Generator,
 )
-
-from fhirkit.choice_type import ChoiceType
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal  # type: ignore
 
-from pydantic import Field, StrictBool, StrictStr, validator
-from fhirkit.Resource import CanonicalResource
-from fhirkit.choice_type import deterimine_choice_type
-from fhirkit.elements import (
-    BackboneElement,
-    CodeableConcept,
-    Coding,
-    Identifier,
-    UsageContext,
-)
-from fhirkit.primitive_datatypes import URI, Code, dateTime, date
-from fhirkit.metadata_types import ContactDetail
+from pydantic import Field
+from fhirkit import r5
+from fhirkit.utils.deprecated import deprecated
 
 
 class CodeLookupError(KeyError):
     pass
 
 
-class CSConceptDesignation(BackboneElement):
-    language: Optional[Code]
-    use: Optional[Coding]
-    value: str
+@deprecated(reason="Use r5.CodeSystem instead")
+class CSConceptDesignation(r5.CodeSystemConceptDesignation):
+    pass
 
 
-class CSConceptProperty(BackboneElement):
-    code: Code
-    valueBoolean: Optional[StrictBool] = Field(None)
-    valueString: Optional[StrictStr] = Field(None,)
-    valueCode: Optional[Code] = Field(None,)
-    valueCoding: Optional[Coding] = Field(None)
-    valueDateTime: Optional[dateTime] = Field(None)
-    valueDecimal: Optional[float] = Field(None)
-
+class CSConceptProperty(r5.CodeSystemConceptProperty):
     @property
-    def value(self)->StrictBool|StrictStr|Code|Coding|dateTime|float:
+    def value(
+        self,
+    ) -> (
+        r5.code
+        | r5.Coding
+        | r5.string
+        | r5.integer
+        | r5.boolean
+        | r5.dateTime
+        | r5.decimal
+    ):
         for prop in self.__fields__.keys():
             if prop.startswith("value"):
                 v = getattr(self, prop)
@@ -63,11 +46,8 @@ class CSConceptProperty(BackboneElement):
     def __str__(self) -> str:
         return str(self.code) + ": " + str(self.value)
 
-class CSConcept(BackboneElement):
-    code: Code
-    display: Optional[str]
-    definition: Optional[str]
-    designation: Sequence[CSConceptDesignation] = []
+
+class CSConcept(r5.CodeSystemConcept):
     property: Sequence[CSConceptProperty] = []
     concept: Sequence[CSConcept] = []
 
@@ -92,91 +72,8 @@ class CSConceptLookup(CSConcept):
     name: str
 
 
-def traverse_concepts(
-    s: Iterable[CSConcept],
-) -> Generator[CSConcept, None, None]:
-    for c in s:
-        yield c
-        if len(c.concept) > 0:
-            yield from traverse_concepts(c.concept)
-
-
-class CodeSystem(CanonicalResource):
-    resourceType:Literal["CodeSystem"] = Field("CodeSystem", const=True)
-    url: Optional[URI]
-    identifier: Sequence[Identifier] = []
-    version: Optional[str]
-    name: Optional[str]
-    title: Optional[str]
-    status: Literal["draft", "active", "retired", "unknown"]
-    experimental: Optional[bool]
-    date: Optional[Union[date, dateTime]]
-    publisher: Optional[str]
-    contact: Sequence[ContactDetail] = []
-    description: Optional[str]
-    useContext: Sequence[UsageContext] = []
-    jurisdiction: Sequence[CodeableConcept] = []
-    purpose: Optional[str]
-    copyright: Optional[str]
-    caseSensitive: Optional[bool]
-    valueSet: Optional[URI]
-    hierarchyMeaning: Optional[
-        Literal["grouped-by", "is-a", "part-of", "classified-with"]
-    ]
-    compositional: Optional[bool]
-    versionNeeded: Optional[bool]
-    content: Literal["not-present", "example", "fragment", "complete", "supplement"]
-    supplements: Optional[URI]
-    count: Optional[int]
-    concept: Sequence[CSConcept] = []
-
-    def lookup(
-        self,
-        code: Optional[Code] = None,
-        coding: Optional[Coding] = None,
-        date: Optional[dateTime] = None,
-        displayLanguage: Optional[Code] = None,
-        property: Optional[Code] = None,
-    ):
-        if len(self.concept) == 0:
-            raise RuntimeWarning(
-                "No strategy to lookup codes or concepts if concepts are not explicitly available under 'CodeSystem.concept'"
-            )
-
-        if self.name is None:
-            raise RuntimeWarning("The CodeSystem has no name to use as display name")
-        assert (
-            code is not None or coding is not None
-        ), "At least a code or coding is needed to lookup."
-        for concept in traverse_concepts(self.concept):
-
-            if (concept.code == code) or (
-                coding
-                and concept.code == coding.code
-                and concept.display == coding.display
-            ):
-                return CSConceptLookup(
-                    name=self.name,
-                    **concept.dict(
-                        include={
-                            "code",
-                            "designation",
-                            "property",
-                            "display",
-                            "version",
-                        }
-                    ),
-                )
-
-        raise CodeLookupError(
-            f"No concept found in CodeSystem for given code/coding. (code={code}, coding={coding})"
-        )
-
-    def iter(self) -> Generator[CSConcept, None, None]:
-        yield from traverse_concepts(self.concept)
+class CodeSystem(r5.CodeSystem):
+    resourceType: Literal["CodeSystem"] = Field("CodeSystem", const=True)
 
 
 CodeSystem.update_forward_refs()
-for cs_subclass in CodeSystem.__subclasses__():
-    cs_subclass.update_forward_refs()
-CSConcept.update_forward_refs()

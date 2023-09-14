@@ -127,3 +127,11 @@ class BaseModel(pydantic.BaseModel):
         if self.__custom_root_type__:
             data = data[ROOT_KEY]
         return self.__config__.json_dumps(data, default=encoder, **dumps_kwargs)
+
+    class Config:
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any], *args, **kwargs) -> None:
+            props = schema.get('properties', {})
+            props.pop('contained', None)
+            props.pop('extension', None)
+            props.pop('modifierExtension', None)

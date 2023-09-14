@@ -1,11 +1,15 @@
 {
-  "python.formatting.provider": "black",
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": true,
+    "editor.wordBasedSuggestions": false,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.languageServer": "Pylance",
   "python.testing.pytestArgs": ["test"],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "python.testing.cwd": "${workspaceFolder}",
   "python.envFile": "${workspaceFolder}/.env",
-  "python.linting.mypyEnabled": true,
-  "python.linting.enabled": true,
   "python.analysis.diagnosticMode": "workspace"
 }
